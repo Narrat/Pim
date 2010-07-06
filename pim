@@ -67,10 +67,16 @@ class Pim:
             #if True, scroll in the horizontal direction.
             (0,              keys.g,     self.scroll, gtk.SCROLL_START, False),
             (gdk.SHIFT_MASK, keys.G,     self.scroll, gtk.SCROLL_END, False),
+
             (0,              keys.h,     self.scroll, gtk.SCROLL_STEP_BACKWARD, True),
             (0,              keys.j,     self.scroll, gtk.SCROLL_STEP_FORWARD, False),
             (0,              keys.k,     self.scroll, gtk.SCROLL_STEP_BACKWARD, False),
             (0,              keys.l,     self.scroll, gtk.SCROLL_STEP_FORWARD, True),
+
+            (0,              keys.Left,  self.scroll, gtk.SCROLL_STEP_BACKWARD, True),
+            (0,              keys.Down,  self.scroll, gtk.SCROLL_STEP_FORWARD, False),
+            (0,              keys.Up,    self.scroll, gtk.SCROLL_STEP_BACKWARD, False),
+            (0,              keys.Right, self.scroll, gtk.SCROLL_STEP_FORWARD, True),
 
             (0,              keys.i,     self.zoom_delta, +.5),
             (0,              keys.o,     self.zoom_delta, -.5),
