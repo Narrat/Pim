@@ -1,0 +1,305 @@
+#!/usr/bin/env python
+
+### License ###
+# Copyright (c) 2010 James Campos
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+### TODO ###
+# resolve scrollbar issue
+# hide pointer in fullscreen
+# status text
+
+### Thanks ###
+# alterecco, for making [visible](http://drop.dotright.net/visible),
+#   and inspiring me to make this program.
+
+
+### Pim ###
+# A Python image viewer with vim-like keybindings.
+
+from optparse import OptionParser
+from random import shuffle
+import mimetypes
+import glib
+import gtk
+from gtk import keysyms as keys
+from gtk import gdk
+import os
+
+
+class Pim:
+    def __init__(self):
+        self.fullscreen = False
+        self.slideshow = False
+        self.slideshow_delay = 5
+        self.random = False
+        self.remember_position = True
+
+        self.binds = (
+            #(modifer, key, function, args)
+            #supported modifiers: gdk.SHIFT_MASK, gdk.CONTROL_MASK, gdk.MOD1_MASK (alt key)
+            (0,              keys.q,     self.quit),
+            (0,              keys.f,     self.toggle_fullscreen),
+
+            #if True, scroll in the horizontal direction.
+            (0,              keys.g,     self.scroll, gtk.SCROLL_START, False),
+            (gdk.SHIFT_MASK, keys.G,     self.scroll, gtk.SCROLL_END, False),
+            (0,              keys.h,     self.scroll, gtk.SCROLL_STEP_BACKWARD, True),
+            (0,              keys.j,     self.scroll, gtk.SCROLL_STEP_FORWARD, False),
+            (0,              keys.k,     self.scroll, gtk.SCROLL_STEP_BACKWARD, False),
+            (0,              keys.l,     self.scroll, gtk.SCROLL_STEP_FORWARD, True),
+
+            (0,              keys.i,     self.zoom_delta, +.5),
+            (0,              keys.o,     self.zoom_delta, -.5),
+            (0,              keys._1,    self.zoom_to, 1),
+            (0,              keys._2,    self.zoom_to, 2),
+            (0,              keys._3,    self.zoom_to, 3),
+            #back to fullscreen
+            (0,              keys._0,    self.zoom_to, 0),
+
+            (0,              keys.s,     self.toggle_slideshow),
+            (0,              keys.space, self.move_index, 1),
+            (gdk.SHIFT_MASK, keys.space, self.move_index, -1),
+            )
+
+
+    def quit(self):
+        if self.remember_position:
+            try:
+                f = open('pim-position', 'w')
+                f.writelines(self.paths[self.index])
+                f.close()
+            except IOError, e:
+                print e
+        gtk.main_quit()
+
+
+    def scroll(self, scrolltype, horizontal):
+        self.scrolled_win.emit('scroll-child', scrolltype, horizontal)
+
+
+    def toggle_slideshow(self):
+        self.slideshow = not self.slideshow
+        if self.slideshow:
+            self.timer_id = glib.timeout_add_seconds(self.slideshow_delay, self.move_index, 1)
+        else:
+            glib.source_remove(self.timer_id)
+        self.update_title()
+
+
+    def toggle_fullscreen(self):
+        self.fullscreen = not self.fullscreen
+        if self.fullscreen:
+            self.win.fullscreen()
+            self.zoom_percent = self.get_fullscreen_zoom_percent()
+        else:
+            self.win.unfullscreen()
+            self.zoom_percent = 1
+        self.update_image()
+
+
+    def get_fullscreen_zoom_percent(self):
+        pboWidth = self.pixbufOriginal.get_width()
+        pboHeight = self.pixbufOriginal.get_height()
+        pbRatio = float(pboWidth) / float(pboHeight)
+
+        if pbRatio > self.sRatio:
+            #pixbuf is proportionally wider than screen
+            return float(self.sWidth) / float(pboWidth)
+        else:
+            return float(self.sHeight) / float(pboHeight)
+
+
+    def update_image(self):
+        ''' Show the final image '''
+
+        pboWidth = self.pixbufOriginal.get_width()
+        pboHeight = self.pixbufOriginal.get_height()
+        if self.zoom_percent is 1:
+            pixbufFinal = self.pixbufOriginal
+            pbfWidth = pboWidth
+            pbfHeight = pboHeight
+        else:
+            pbfWidth = int(pboWidth * self.zoom_percent)
+            pbfHeight = int(pboHeight * self.zoom_percent)
+            pixbufFinal = self.pixbufOriginal.scale_simple(
+                    pbfWidth, pbfHeight, gdk.INTERP_BILINEAR)
+        self.image.set_from_pixbuf(pixbufFinal)
+
+        self.update_title()
+        if not self.fullscreen:
+            self.resize_window(pbfWidth, pbfHeight)
+
+
+    def resize_window(self, pbfWidth, pbfHeight):
+        #this doesn't work well with the scrollbars. I don't know if I just need to call some random function or if it's a gtk bug.
+        winWidth = pbfWidth if pbfWidth < self.sWidth else self.sWidth
+        winHeight = pbfHeight if pbfHeight < self.sHeight else self.sHeight
+
+        self.win.resize(winWidth, winHeight)
+
+
+    def update_title(self):
+        self.win.set_title("pim %d/%d %d%% %s%s" % (self.index, len(self.paths),
+            self.zoom_percent * 100, self.paths[self.index], ' [slideshow]' if self.slideshow else ''))
+
+
+    def zoom_delta(self, delta):
+        self.zoom_percent = self.zoom_percent + delta
+        self.update_image()
+
+
+    def zoom_to(self, percent):
+        self.zoom_percent = percent if percent else self.get_fullscreen_zoom_percent()
+        self.update_image()
+
+
+    def move_index(self, delta):
+        self.index = (self.index + delta) % len(self.paths)
+
+        #reshuffle on wrap-around
+        if self.random and self.index is 0 and delta > 0:
+            shuffle(self.paths)
+
+        path = self.paths[self.index]
+        self.pixbufOriginal = gdk.pixbuf_new_from_file(path)
+        if self.fullscreen:
+            self.zoom_percent = self.get_fullscreen_zoom_percent()
+        else:
+            self.zoom_percent = 1
+        self.update_image()
+
+        return True #for the slideshow
+
+
+    def parse_args(self):
+        usage = "usage: %prog [options] path1 [path2 path3 ...]"
+        parser = OptionParser(usage=usage)
+        parser.add_option("-r", "--random", action="store_true", dest="random", help="randomize filelist", default=self.random)
+        parser.add_option("-R", "--no-random", action="store_false",   dest="random", help="don't randomize")
+        (options, args) = parser.parse_args()
+        self.random = options.random
+
+        if len(args) is 0:
+            parser.error('need at least one path!')
+
+        if not self.populate(args):
+            parser.error('no loadable images detected')
+
+
+    def populate(self, args):
+        ''' Generate a list of paths from the given arguments '''
+
+        #get supported mimetypes
+        types = []
+        for pixbuf_format in gdk.pixbuf_get_formats():
+            types.extend(pixbuf_format['mime_types'])
+
+        #if only one arg passed, do special stuff
+        single = None
+        if len(args) is 1:
+            arg = args[0]
+            if os.path.isfile(arg):
+                #use parent directory
+                single = args[0]
+                abspath = os.path.abspath(single)
+                directory = os.path.dirname(abspath)
+                args = (directory,)
+            elif os.path.isdir(arg) and self.remember_position:
+                try:
+                    f = open('pim-position')
+                    single = f.read()
+                except IOError, e:
+                    print e
+
+        #add everything
+        self.paths = []
+        for arg in args:
+            path = os.path.abspath(arg)
+            if os.path.isfile(path):
+                self.paths.append(path)
+            elif os.path.isdir(path):
+                paths = [os.path.join(path, x) for x in os.listdir(path)]
+                paths.sort()
+                self.paths.extend(paths)
+            else:
+                print "%s is not a valid path!" % arg
+
+        #remove unsupported files
+        self.paths = [path for path in self.paths if mimetypes.guess_type(path)[0] in types]
+
+        #shuffle
+        if self.random:
+            shuffle(self.paths)
+
+        #complete special stuff for single arg
+        if single and single in self.paths:
+            self.index = self.paths.index(single)
+        else:
+            self.index = 0
+
+        return len(self.paths)
+
+
+    def handle_key_press(self, widget, event):
+        #ignore everything but shift, control, and alt modifiers
+        state = event.state & (gdk.SHIFT_MASK | gdk.CONTROL_MASK | gdk.MOD1_MASK)
+        keyval = event.keyval
+        for bind in self.binds:
+            if keyval == bind[1] and state == bind[0]:
+                funk = bind[2]
+                args = bind[3:]
+                funk(*args)
+                return
+        print event
+
+
+    def main(self):
+        self.parse_args()
+
+        screen = gdk.Screen()
+        self.sWidth = screen.get_width()
+        self.sHeight = screen.get_height()
+        self.sRatio = float(self.sWidth) / float(self.sHeight)
+
+        self.win = gtk.Window()
+        self.win.connect('destroy', gtk.main_quit)
+        self.win.connect("key_press_event", self.handle_key_press)
+
+        self.scrolled_win = gtk.ScrolledWindow()
+        self.scrolled_win.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.win.add(self.scrolled_win)
+
+        viewport = gtk.Viewport()
+        viewport.modify_bg(gtk.STATE_NORMAL, gdk.color_parse('#000000'))
+        viewport.set_shadow_type(gtk.SHADOW_NONE)
+        self.scrolled_win.add(viewport)
+
+        self.image = gtk.Image()
+        viewport.add(self.image)
+
+        self.move_index(0)
+        self.win.show_all()
+        if self.fullscreen:
+            self.win.fullscreen()
+        gtk.main()
+
+
+Pim().main()
