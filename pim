@@ -57,6 +57,7 @@ class Pim:
         self.slideshow_delay = 5
         self.random = False
         self.remember_position = True
+        self.zoom_lock = False
 
         self.binds = (
             #(modifer, key, function, args)
@@ -85,6 +86,7 @@ class Pim:
             (0,              keys.b,     self.move_index, -1),
             (0,              keys.e,     self.toggle_slideshow),
             (0,              keys.x,     self.delete),
+            (0,              keys.z,     self.toggle_zoom_lock),
 
             (0,              keys._1,    self.zoom_to, 1),
             (0,              keys._2,    self.zoom_to, 2),
@@ -97,11 +99,16 @@ class Pim:
             )
 
 
+    def toggle_zoom_lock(self):
+        self.zoom_lock = not self.zoom_lock
+
+
     def delete(self):
         current = self.paths[self.index]
         self.paths.remove(current)
         os.remove(current)
         self.move_index(0)
+
 
     def quit(self):
         if self.remember_position:
@@ -204,10 +211,11 @@ class Pim:
 
         path = self.paths[self.index]
         self.pixbufOriginal = gdk.pixbuf_new_from_file(path)
-        if self.fullscreen:
-            self.zoom_percent = self.get_fullscreen_zoom_percent()
-        else:
-            self.zoom_percent = 1
+        if not self.zoom_lock:
+            if self.fullscreen:
+                self.zoom_percent = self.get_fullscreen_zoom_percent()
+            else:
+                self.zoom_percent = 1
         self.update_image()
 
         return True #for the slideshow
