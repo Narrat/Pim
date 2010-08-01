@@ -81,8 +81,11 @@ class Pim:
             (0,              keys.s,     self.scroll, gtk.SCROLL_STEP_FORWARD, False),
             (0,              keys.d,     self.scroll, gtk.SCROLL_STEP_FORWARD, True),
 
+            (0,              keys.g,     self.scroll, gtk.SCROLL_START, False),
+            (gdk.SHIFT_MASK, keys.G,     self.scroll, gtk.SCROLL_END, False),
+
+            (gdk.SHIFT_MASK, keys.T,     self.zoom_delta, -.5),
             (0,              keys.t,     self.zoom_delta, +.5),
-            (0,              keys.g,     self.zoom_delta, -.5),
             (0,              keys.b,     self.move_index, -1),
             (0,              keys.e,     self.toggle_slideshow),
             (0,              keys.x,     self.delete),
