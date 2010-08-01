@@ -65,9 +65,6 @@ class Pim:
             (0,              keys.f,     self.toggle_fullscreen),
 
             #if True, scroll in the horizontal direction.
-            (0,              keys.g,     self.scroll, gtk.SCROLL_START, False),
-            (gdk.SHIFT_MASK, keys.G,     self.scroll, gtk.SCROLL_END, False),
-
             (0,              keys.h,     self.scroll, gtk.SCROLL_STEP_BACKWARD, True),
             (0,              keys.j,     self.scroll, gtk.SCROLL_STEP_FORWARD, False),
             (0,              keys.k,     self.scroll, gtk.SCROLL_STEP_BACKWARD, False),
@@ -78,15 +75,22 @@ class Pim:
             (0,              keys.Up,    self.scroll, gtk.SCROLL_STEP_BACKWARD, False),
             (0,              keys.Right, self.scroll, gtk.SCROLL_STEP_FORWARD, True),
 
-            (0,              keys.i,     self.zoom_delta, +.5),
-            (0,              keys.o,     self.zoom_delta, -.5),
+            (0,              keys.w,     self.scroll, gtk.SCROLL_STEP_BACKWARD, False),
+            (0,              keys.a,     self.scroll, gtk.SCROLL_STEP_BACKWARD, True),
+            (0,              keys.s,     self.scroll, gtk.SCROLL_STEP_FORWARD, False),
+            (0,              keys.d,     self.scroll, gtk.SCROLL_STEP_FORWARD, True),
+
+            (0,              keys.t,     self.zoom_delta, +.5),
+            (0,              keys.g,     self.zoom_delta, -.5),
+            (0,              keys.b,     self.move_index, -1),
+            (0,              keys.e,     self.toggle_slideshow),
+
             (0,              keys._1,    self.zoom_to, 1),
             (0,              keys._2,    self.zoom_to, 2),
             (0,              keys._3,    self.zoom_to, 3),
             #back to fullscreen
-            (0,              keys._0,    self.zoom_to, 0),
+            (0,              keys._5,    self.zoom_to, 0),
 
-            (0,              keys.s,     self.toggle_slideshow),
             (0,              keys.space, self.move_index, 1),
             (gdk.SHIFT_MASK, keys.space, self.move_index, -1),
             )
