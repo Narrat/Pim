@@ -44,6 +44,7 @@
 
 ### Pim ###
 # A Python image viewer with vim-like keybindings.
+# v0.1.0
 
 from optparse import OptionParser
 from random import shuffle
