@@ -121,11 +121,14 @@ class Pim:
         current = self.paths[self.index]
         self.paths.remove(current)
         os.remove(current)
-        self.move_index(0)
+        if len(self.paths) == 0:
+            self.quit()
+        else:
+            self.move_index(0)
 
 
     def quit(self):
-        if self.remember_position:
+        if self.remember_position and len(self.paths):
             try:
                 f = open('pim-position', 'w')
                 f.writelines(self.paths[self.index])
