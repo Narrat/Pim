@@ -35,6 +35,7 @@ import gtk
 from gtk import keysyms as keys
 from gtk import gdk
 import os
+import shutil
 
 
 class Pim:
@@ -101,7 +102,9 @@ class Pim:
     def delete(self):
         current = self.paths[self.index]
         self.paths.remove(current)
-        os.remove(current)
+        if not os.path.isdir('/tmp/pim-trash'):
+            os.mkdir('/tmp/pim-trash')
+        shutil.move(current, '/tmp/pim-trash')
         if len(self.paths) == 0:
             self.quit()
         else:
