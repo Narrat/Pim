@@ -81,7 +81,8 @@ class Pim:
             (0,              keys.t,     self.zoom_delta, +.5),
             (0,              keys.b,     self.move_index, -1),
             (0,              keys.e,     self.toggle_slideshow),
-            (0,              keys.x,     self.delete),
+            (gdk.SHIFT_MASK, keys.X,     self.delete, -1),
+            (0,              keys.x,     self.delete, 0),
             (0,              keys.z,     self.toggle_zoom_lock),
 
             (0,              keys._1,    self.zoom_to, 1),
@@ -99,7 +100,7 @@ class Pim:
         self.zoom_lock = not self.zoom_lock
 
 
-    def delete(self):
+    def delete(self, delta):
         current = self.paths[self.index]
         self.paths.remove(current)
         if not os.path.isdir('/tmp/pim-trash'):
@@ -108,7 +109,7 @@ class Pim:
         if len(self.paths) == 0:
             self.quit()
         else:
-            self.move_index(0)
+            self.move_index(delta)
 
 
     def quit(self):
