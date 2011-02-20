@@ -8,18 +8,16 @@
 # status text
 # better shift masking
 # rotating
-# aur package?
 # pim.desktop
 # mouse panning / keybinds
 # fit width / height
-# delete dialog
 # marking (echo $current >> pim-marked)
 # set as wallpaper
 # animated gifs
 # python3
 
 ### Thanks ###
-# alterecco, for making [visible](http://drop.dotright.net/visible),
+# alterecco, for making [visible](http://drop.dotright.net/visible) (dead),
 #   and inspiring me to make this program.
 
 
