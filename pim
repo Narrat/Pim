@@ -218,6 +218,8 @@ class Pim:
                 self.zoom_percent = 1
         self.update_image()
 
+        self.scroll(gtk.SCROLL_START, False)
+
         return True #for the slideshow
 
 
