@@ -57,6 +57,11 @@ class Pim:
             (0,              keys.k,     self.scroll, gtk.SCROLL_STEP_BACKWARD, False),
             (0,              keys.l,     self.scroll, gtk.SCROLL_STEP_FORWARD, True),
 
+            (gdk.SHIFT_MASK, keys.H,     self.scroll, gtk.SCROLL_PAGE_BACKWARD, True),
+            (gdk.SHIFT_MASK, keys.J,     self.scroll, gtk.SCROLL_PAGE_FORWARD, False),
+            (gdk.SHIFT_MASK, keys.K,     self.scroll, gtk.SCROLL_PAGE_BACKWARD, False),
+            (gdk.SHIFT_MASK, keys.L,     self.scroll, gtk.SCROLL_PAGE_FORWARD, True),
+
             (0,              keys.Left,  self.scroll, gtk.SCROLL_STEP_BACKWARD, True),
             (0,              keys.Down,  self.scroll, gtk.SCROLL_STEP_FORWARD, False),
             (0,              keys.Up,    self.scroll, gtk.SCROLL_STEP_BACKWARD, False),
