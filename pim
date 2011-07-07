@@ -224,6 +224,7 @@ class Pim:
         self.update_image()
 
         self.scroll(gtk.SCROLL_START, False)
+        self.scroll(gtk.SCROLL_START, True)
 
         return True #for the slideshow
 
