@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright (c) 2010 James Campos
 
@@ -14,7 +14,6 @@
 # marking (echo $current >> pim-marked)
 # set as wallpaper
 # animated gifs
-# python3
 
 ### Thanks ###
 # alterecco, for making [visible](http://drop.dotright.net/visible) (dead),
@@ -121,8 +120,8 @@ class Pim:
                 f = open('pim-position', 'w')
                 f.writelines(self.paths[self.index])
                 f.close()
-            except IOError, e:
-                print e
+            except IOError as e:
+                print(e)
         gtk.main_quit()
 
 
@@ -266,8 +265,8 @@ class Pim:
                 try:
                     f = open('pim-position')
                     single = f.read()
-                except IOError, e:
-                    print e
+                except IOError as e:
+                    print(e)
 
         #add everything
         self.paths = []
@@ -280,7 +279,7 @@ class Pim:
                 paths.sort()
                 self.paths.extend(paths)
             else:
-                print "%s is not a valid path!" % arg
+                print("%s is not a valid path!" % arg)
 
         #remove unsupported files
         self.paths = [path for path in self.paths if mimetypes.guess_type(path)[0] in types]
@@ -308,7 +307,7 @@ class Pim:
                 args = bind[3:]
                 funk(*args)
                 return
-        print event
+        print(event)
 
 
     def main(self):
