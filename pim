@@ -28,9 +28,10 @@ from optparse import OptionParser
 from random import shuffle
 import mimetypes
 import glib
-import gtk
-from gtk import keysyms as keys
-from gtk import gdk
+from gi.repository import Gtk
+from gi.overrides import keysyms as keys
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
 import os
 import shutil
 
@@ -41,49 +42,49 @@ class Pim:
         self.slideshow = False
         self.slideshow_delay = 5
         self.random = False
-        self.remember_position = True
+        self.remember_position = False
         self.zoom_lock = False
 
         self.binds = (
             #(modifer, key, function, args)
-            #supported modifiers: gdk.SHIFT_MASK, gdk.CONTROL_MASK, gdk.MOD1_MASK (alt key)
+            #supported modifiers: Gdk.ModifierType.SHIFT_MASK, Gdk.ModifierType.CONTROL_MASK, Gdk.ModifierType.MOD1_MASK (alt key)
             (0,              keys.q,     self.quit),
             (0,              keys.f,     self.toggle_fullscreen),
 
             #if True, scroll in the horizontal direction.
-            (0,              keys.h,     self.scroll, gtk.SCROLL_STEP_BACKWARD, True),
-            (0,              keys.j,     self.scroll, gtk.SCROLL_STEP_FORWARD, False),
-            (0,              keys.k,     self.scroll, gtk.SCROLL_STEP_BACKWARD, False),
-            (0,              keys.l,     self.scroll, gtk.SCROLL_STEP_FORWARD, True),
+            #(0,              keys.h,     self.scroll, Gtk.SCROLL_STEP_BACKWARD, True),
+            #(0,              keys.j,     self.scroll, Gtk.SCROLL_STEP_FORWARD, False),
+            #(0,              keys.k,     self.scroll, Gtk.SCROLL_STEP_BACKWARD, False),
+            #(0,              keys.l,     self.scroll, Gtk.SCROLL_STEP_FORWARD, True),
 
-            (gdk.SHIFT_MASK, keys.H,     self.scroll, gtk.SCROLL_PAGE_BACKWARD, True),
-            (gdk.SHIFT_MASK, keys.J,     self.scroll, gtk.SCROLL_PAGE_FORWARD, False),
-            (gdk.SHIFT_MASK, keys.K,     self.scroll, gtk.SCROLL_PAGE_BACKWARD, False),
-            (gdk.SHIFT_MASK, keys.L,     self.scroll, gtk.SCROLL_PAGE_FORWARD, True),
+            #(Gdk.ModifierType.SHIFT_MASK, keys.H,     self.scroll, Gtk.SCROLL_PAGE_BACKWARD, True),
+            #(Gdk.ModifierType.SHIFT_MASK, keys.J,     self.scroll, Gtk.SCROLL_PAGE_FORWARD, False),
+            #(Gdk.ModifierType.SHIFT_MASK, keys.K,     self.scroll, Gtk.SCROLL_PAGE_BACKWARD, False),
+            #(Gdk.ModifierType.SHIFT_MASK, keys.L,     self.scroll, Gtk.SCROLL_PAGE_FORWARD, True),
 
-            (0,              keys.Left,  self.scroll, gtk.SCROLL_STEP_BACKWARD, True),
-            (0,              keys.Down,  self.scroll, gtk.SCROLL_STEP_FORWARD, False),
-            (0,              keys.Up,    self.scroll, gtk.SCROLL_STEP_BACKWARD, False),
-            (0,              keys.Right, self.scroll, gtk.SCROLL_STEP_FORWARD, True),
+            #(0,              keys.Left,  self.scroll, Gtk.SCROLL_STEP_BACKWARD, True),
+            #(0,              keys.Down,  self.scroll, Gtk.SCROLL_STEP_FORWARD, False),
+            #(0,              keys.Up,    self.scroll, Gtk.SCROLL_STEP_BACKWARD, False),
+            #(0,              keys.Right, self.scroll, Gtk.SCROLL_STEP_FORWARD, True),
 
-            (0,              keys.w,     self.scroll, gtk.SCROLL_STEP_BACKWARD, False),
-            (0,              keys.a,     self.scroll, gtk.SCROLL_STEP_BACKWARD, True),
-            (0,              keys.s,     self.scroll, gtk.SCROLL_STEP_FORWARD, False),
-            (0,              keys.d,     self.scroll, gtk.SCROLL_STEP_FORWARD, True),
+            #(0,              keys.w,     self.scroll, Gtk.SCROLL_STEP_BACKWARD, False),
+            #(0,              keys.a,     self.scroll, Gtk.SCROLL_STEP_BACKWARD, True),
+            #(0,              keys.s,     self.scroll, Gtk.SCROLL_STEP_FORWARD, False),
+            #(0,              keys.d,     self.scroll, Gtk.SCROLL_STEP_FORWARD, True),
 
-            (gdk.SHIFT_MASK, keys.W,     self.scroll, gtk.SCROLL_PAGE_BACKWARD, False),
-            (gdk.SHIFT_MASK, keys.A,     self.scroll, gtk.SCROLL_PAGE_BACKWARD, True),
-            (gdk.SHIFT_MASK, keys.S,     self.scroll, gtk.SCROLL_PAGE_FORWARD, False),
-            (gdk.SHIFT_MASK, keys.D,     self.scroll, gtk.SCROLL_PAGE_FORWARD, True),
+            #(Gdk.ModifierType.SHIFT_MASK, keys.W,     self.scroll, Gtk.SCROLL_PAGE_BACKWARD, False),
+            #(Gdk.ModifierType.SHIFT_MASK, keys.A,     self.scroll, Gtk.SCROLL_PAGE_BACKWARD, True),
+            #(Gdk.ModifierType.SHIFT_MASK, keys.S,     self.scroll, Gtk.SCROLL_PAGE_FORWARD, False),
+            #(Gdk.ModifierType.SHIFT_MASK, keys.D,     self.scroll, Gtk.SCROLL_PAGE_FORWARD, True),
 
-            (0,              keys.g,     self.scroll, gtk.SCROLL_START, False),
-            (gdk.SHIFT_MASK, keys.G,     self.scroll, gtk.SCROLL_END, False),
+            #(0,              keys.g,     self.scroll, Gtk.SCROLL_START, False),
+            #(Gdk.ModifierType.SHIFT_MASK, keys.G,     self.scroll, Gtk.SCROLL_END, False),
 
-            (gdk.SHIFT_MASK, keys.T,     self.zoom_delta, -.5),
+            (Gdk.ModifierType.SHIFT_MASK, keys.T,     self.zoom_delta, -.5),
             (0,              keys.t,     self.zoom_delta, +.5),
             (0,              keys.b,     self.move_index, -1),
             (0,              keys.e,     self.toggle_slideshow),
-            (gdk.SHIFT_MASK, keys.X,     self.delete, -1),
+            (Gdk.ModifierType.SHIFT_MASK, keys.X,     self.delete, -1),
             (0,              keys.x,     self.delete, 0),
             (0,              keys.z,     self.toggle_zoom_lock),
 
@@ -94,7 +95,7 @@ class Pim:
             (0,              keys._5,    self.zoom_to, 0),
 
             (0,              keys.space, self.move_index, 1),
-            (gdk.SHIFT_MASK, keys.space, self.move_index, -1),
+            (Gdk.ModifierType.SHIFT_MASK, keys.space, self.move_index, -1),
             )
 
 
@@ -122,7 +123,7 @@ class Pim:
                 f.close()
             except IOError as e:
                 print(e)
-        gtk.main_quit()
+        Gtk.main_quit()
 
 
     def scroll(self, scrolltype, horizontal):
@@ -174,7 +175,7 @@ class Pim:
             pbfWidth = int(pboWidth * self.zoom_percent)
             pbfHeight = int(pboHeight * self.zoom_percent)
             pixbufFinal = self.pixbufOriginal.scale_simple(
-                    pbfWidth, pbfHeight, gdk.INTERP_BILINEAR)
+                    pbfWidth, pbfHeight, GdkPixbuf.InterpType.BILINEAR)
         self.image.set_from_pixbuf(pixbufFinal)
 
         self.update_title()
@@ -185,8 +186,8 @@ class Pim:
     def resize_window(self, pbfWidth, pbfHeight):
         #this doesn't work well with the scrollbars. I don't know if I just need to call some random function or if it's a gtk bug.
         #http://www.gtkforums.com/about6831.html
-        winWidth = pbfWidth if pbfWidth < self.sWidth else self.sWidth
-        winHeight = pbfHeight if pbfHeight < self.sHeight else self.sHeight
+        winWidth = pbfWidth #if pbfWidth < self.sWidth else self.sWidth
+        winHeight = pbfHeight #if pbfHeight < self.sHeight else self.sHeight
 
         self.win.resize(winWidth, winHeight)
 
@@ -214,7 +215,7 @@ class Pim:
             shuffle(self.paths)
 
         path = self.paths[self.index]
-        self.pixbufOriginal = gdk.pixbuf_new_from_file(path)
+        self.pixbufOriginal = GdkPixbuf.Pixbuf.new_from_file(path)
         if not self.zoom_lock:
             if self.fullscreen:
                 self.zoom_percent = self.get_fullscreen_zoom_percent()
@@ -222,8 +223,8 @@ class Pim:
                 self.zoom_percent = 1
         self.update_image()
 
-        self.scroll(gtk.SCROLL_START, False)
-        self.scroll(gtk.SCROLL_START, True)
+        #self.scroll(Gtk.SCROLL_START, False)
+        #self.scroll(Gtk.SCROLL_START, True)
 
         return True #for the slideshow
 
@@ -248,8 +249,8 @@ class Pim:
 
         #get supported mimetypes
         types = []
-        for pixbuf_format in gdk.pixbuf_get_formats():
-            types.extend(pixbuf_format['mime_types'])
+        for pixbuf_format in GdkPixbuf.Pixbuf.get_formats():
+            types.extend(pixbuf_format.get_mime_types())
 
         #if only one arg passed, do special stuff
         single = None
@@ -299,7 +300,7 @@ class Pim:
 
     def handle_key_press(self, widget, event):
         #ignore everything but shift, control, and alt modifiers
-        state = event.state & (gdk.SHIFT_MASK | gdk.CONTROL_MASK | gdk.MOD1_MASK)
+        state = event.get_state() & (Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.MOD1_MASK)
         keyval = event.keyval
         for bind in self.binds:
             if keyval == bind[1] and state == bind[0]:
@@ -313,32 +314,34 @@ class Pim:
     def main(self):
         self.parse_args()
 
-        screen = gdk.Screen()
-        self.sWidth = screen.get_width()
-        self.sHeight = screen.get_height()
-        self.sRatio = float(self.sWidth) / float(self.sHeight)
+        screen = Gdk.Screen()
+        #self.sWidth = screen.get_width()
+        #self.sHeight = screen.get_height()
+        #self.sRatio = float(self.sWidth) / float(self.sHeight)
 
-        self.win = gtk.Window()
-        self.win.connect('destroy', gtk.main_quit)
+        self.win = Gtk.Window()
+        self.win.connect('destroy', Gtk.main_quit)
         self.win.connect("key_press_event", self.handle_key_press)
 
-        self.scrolled_win = gtk.ScrolledWindow()
-        self.scrolled_win.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.scrolled_win = Gtk.ScrolledWindow()
+        self.scrolled_win.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.win.add(self.scrolled_win)
 
-        viewport = gtk.Viewport()
-        viewport.modify_bg(gtk.STATE_NORMAL, gdk.color_parse('#000000'))
-        viewport.set_shadow_type(gtk.SHADOW_NONE)
+        viewport = Gtk.Viewport()
+        viewport.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse('#000000'))
+        viewport.set_shadow_type(Gtk.ShadowType.NONE)
         self.scrolled_win.add(viewport)
 
-        self.image = gtk.Image()
+        self.image = Gtk.Image()
         viewport.add(self.image)
 
         self.move_index(0)
         self.win.show_all()
         if self.fullscreen:
             self.win.fullscreen()
-        gtk.main()
+        Gtk.main()
 
 
-Pim().main()
+if __name__ == '__main__':
+
+    Pim().main()
