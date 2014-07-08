@@ -29,7 +29,6 @@ from random import shuffle
 import mimetypes
 import glib
 from gi.repository import Gtk
-from gi.overrides import keysyms as keys
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
 import os
@@ -48,54 +47,54 @@ class Pim:
         self.binds = (
             #(modifer, key, function, args)
             #supported modifiers: Gdk.ModifierType.SHIFT_MASK, Gdk.ModifierType.CONTROL_MASK, Gdk.ModifierType.MOD1_MASK (alt key)
-            (0,              keys.q,     self.quit),
-            (0,              keys.f,     self.toggle_fullscreen),
+            (0,              Gdk.KEY_q,     self.quit),
+            (0,              Gdk.KEY_f,     self.toggle_fullscreen),
 
             #if True, scroll in the horizontal direction.
-            #(0,              keys.h,     self.scroll, Gtk.SCROLL_STEP_BACKWARD, True),
-            #(0,              keys.j,     self.scroll, Gtk.SCROLL_STEP_FORWARD, False),
-            #(0,              keys.k,     self.scroll, Gtk.SCROLL_STEP_BACKWARD, False),
-            #(0,              keys.l,     self.scroll, Gtk.SCROLL_STEP_FORWARD, True),
+            #(0,              Gdk.KEY_h,     self.scroll, Gtk.SCROLL_STEP_BACKWARD, True),
+            #(0,              Gdk.KEY_j,     self.scroll, Gtk.SCROLL_STEP_FORWARD, False),
+            #(0,              Gdk.KEY_k,     self.scroll, Gtk.SCROLL_STEP_BACKWARD, False),
+            #(0,              Gdk.KEY_l,     self.scroll, Gtk.SCROLL_STEP_FORWARD, True),
 
-            #(Gdk.ModifierType.SHIFT_MASK, keys.H,     self.scroll, Gtk.SCROLL_PAGE_BACKWARD, True),
-            #(Gdk.ModifierType.SHIFT_MASK, keys.J,     self.scroll, Gtk.SCROLL_PAGE_FORWARD, False),
-            #(Gdk.ModifierType.SHIFT_MASK, keys.K,     self.scroll, Gtk.SCROLL_PAGE_BACKWARD, False),
-            #(Gdk.ModifierType.SHIFT_MASK, keys.L,     self.scroll, Gtk.SCROLL_PAGE_FORWARD, True),
+            #(Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_H,     self.scroll, Gtk.SCROLL_PAGE_BACKWARD, True),
+            #(Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_J,     self.scroll, Gtk.SCROLL_PAGE_FORWARD, False),
+            #(Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_K,     self.scroll, Gtk.SCROLL_PAGE_BACKWARD, False),
+            #(Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_L,     self.scroll, Gtk.SCROLL_PAGE_FORWARD, True),
 
-            #(0,              keys.Left,  self.scroll, Gtk.SCROLL_STEP_BACKWARD, True),
-            #(0,              keys.Down,  self.scroll, Gtk.SCROLL_STEP_FORWARD, False),
-            #(0,              keys.Up,    self.scroll, Gtk.SCROLL_STEP_BACKWARD, False),
-            #(0,              keys.Right, self.scroll, Gtk.SCROLL_STEP_FORWARD, True),
+            #(0,              Gdk.KEY_Left,  self.scroll, Gtk.SCROLL_STEP_BACKWARD, True),
+            #(0,              Gdk.KEY_Down,  self.scroll, Gtk.SCROLL_STEP_FORWARD, False),
+            #(0,              Gdk.KEY_Up,    self.scroll, Gtk.SCROLL_STEP_BACKWARD, False),
+            #(0,              Gdk.KEY_Right, self.scroll, Gtk.SCROLL_STEP_FORWARD, True),
 
-            #(0,              keys.w,     self.scroll, Gtk.SCROLL_STEP_BACKWARD, False),
-            #(0,              keys.a,     self.scroll, Gtk.SCROLL_STEP_BACKWARD, True),
-            #(0,              keys.s,     self.scroll, Gtk.SCROLL_STEP_FORWARD, False),
-            #(0,              keys.d,     self.scroll, Gtk.SCROLL_STEP_FORWARD, True),
+            #(0,              Gdk.KEY_w,     self.scroll, Gtk.SCROLL_STEP_BACKWARD, False),
+            #(0,              Gdk.KEY_a,     self.scroll, Gtk.SCROLL_STEP_BACKWARD, True),
+            #(0,              Gdk.KEY_s,     self.scroll, Gtk.SCROLL_STEP_FORWARD, False),
+            #(0,              Gdk.KEY_d,     self.scroll, Gtk.SCROLL_STEP_FORWARD, True),
 
-            #(Gdk.ModifierType.SHIFT_MASK, keys.W,     self.scroll, Gtk.SCROLL_PAGE_BACKWARD, False),
-            #(Gdk.ModifierType.SHIFT_MASK, keys.A,     self.scroll, Gtk.SCROLL_PAGE_BACKWARD, True),
-            #(Gdk.ModifierType.SHIFT_MASK, keys.S,     self.scroll, Gtk.SCROLL_PAGE_FORWARD, False),
-            #(Gdk.ModifierType.SHIFT_MASK, keys.D,     self.scroll, Gtk.SCROLL_PAGE_FORWARD, True),
+            #(Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_W,     self.scroll, Gtk.SCROLL_PAGE_BACKWARD, False),
+            #(Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_A,     self.scroll, Gtk.SCROLL_PAGE_BACKWARD, True),
+            #(Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_S,     self.scroll, Gtk.SCROLL_PAGE_FORWARD, False),
+            #(Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_D,     self.scroll, Gtk.SCROLL_PAGE_FORWARD, True),
 
-            #(0,              keys.g,     self.scroll, Gtk.SCROLL_START, False),
-            #(Gdk.ModifierType.SHIFT_MASK, keys.G,     self.scroll, Gtk.SCROLL_END, False),
+            #(0,              Gdk.KEY_g,     self.scroll, Gtk.SCROLL_START, False),
+            #(Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_G,     self.scroll, Gtk.SCROLL_END, False),
 
-            (Gdk.ModifierType.SHIFT_MASK, keys.T,     self.zoom_delta, -.5),
-            (0,              keys.t,     self.zoom_delta, +.5),
-            (0,              keys.b,     self.move_index, -1),
-            (0,              keys.e,     self.toggle_slideshow),
-            (Gdk.ModifierType.SHIFT_MASK, keys.X,     self.delete, -1),
-            (0,              keys.x,     self.delete, 0),
-            (0,              keys.z,     self.toggle_zoom_lock),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_T,     self.zoom_delta, -.5),
+            (0,              Gdk.KEY_t,     self.zoom_delta, +.5),
+            (0,              Gdk.KEY_b,     self.move_index, -1),
+            (0,              Gdk.KEY_e,     self.toggle_slideshow),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_X,     self.delete, -1),
+            (0,              Gdk.KEY_x,     self.delete, 0),
+            (0,              Gdk.KEY_z,     self.toggle_zoom_lock),
 
-            (0,              keys._1,    self.zoom_to, 1),
-            (0,              keys._2,    self.zoom_to, 2),
-            (0,              keys._3,    self.zoom_to, 3),
+            (0,              Gdk.KEY_1,    self.zoom_to, 1),
+            (0,              Gdk.KEY_2,    self.zoom_to, 2),
+            (0,              Gdk.KEY_3,    self.zoom_to, 3),
             #back to fullscreen
-            (0,              keys._5,    self.zoom_to, 0),
+            (0,              Gdk.KEY_5,    self.zoom_to, 0),
 
-            (0,              keys.space, self.move_index, 1),
-            (Gdk.ModifierType.SHIFT_MASK, keys.space, self.move_index, -1),
+            (0,              Gdk.KEY_space, self.move_index, 1),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_space, self.move_index, -1),
             )
 
 
