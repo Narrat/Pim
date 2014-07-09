@@ -185,8 +185,8 @@ class Pim:
     def resize_window(self, pbfWidth, pbfHeight):
         #this doesn't work well with the scrollbars. I don't know if I just need to call some random function or if it's a gtk bug.
         #http://www.gtkforums.com/about6831.html
-        winWidth = pbfWidth #if pbfWidth < self.sWidth else self.sWidth
-        winHeight = pbfHeight #if pbfHeight < self.sHeight else self.sHeight
+        winWidth = pbfWidth if pbfWidth < self.sWidth else self.sWidth
+        winHeight = pbfHeight if pbfHeight < self.sHeight else self.sHeight
 
         self.win.resize(winWidth, winHeight)
 
@@ -313,10 +313,14 @@ class Pim:
     def main(self):
         self.parse_args()
 
-        screen = Gdk.Screen()
+        # Segfaults
+        #screen = Gdk.Screen()
         #self.sWidth = screen.get_width()
         #self.sHeight = screen.get_height()
         #self.sRatio = float(self.sWidth) / float(self.sHeight)
+        self.sWidth = 1200
+        self.sHeight = 800
+        self.sRatio = self.sWidth / self.sHeight
 
         self.win = Gtk.Window()
         self.win.connect('destroy', Gtk.main_quit)
