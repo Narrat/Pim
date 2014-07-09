@@ -222,8 +222,8 @@ class Pim:
                 self.zoom_percent = 1
         self.update_image()
 
-        #self.scroll(Gtk.SCROLL_START, False)
-        #self.scroll(Gtk.SCROLL_START, True)
+        self.scroll(Gtk.ScrollType.START, False)
+        self.scroll(Gtk.ScrollType.START, True)
 
         return True #for the slideshow
 
