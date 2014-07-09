@@ -323,7 +323,6 @@ class Pim:
         self.win.connect("key_press_event", self.handle_key_press)
 
         self.scrolled_win = Gtk.ScrolledWindow()
-        self.scrolled_win.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.win.add(self.scrolled_win)
 
         viewport = Gtk.Viewport()
