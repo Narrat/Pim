@@ -22,15 +22,12 @@
 
 ### Pim ###
 # A Python image viewer with vim-like keybindings.
-# v0.2.0
+# v0.3.0
 
 from optparse import OptionParser
 from random import shuffle
 import mimetypes
-from gi.repository import GLib
-from gi.repository import Gtk
-from gi.repository import Gdk
-from gi.repository import GdkPixbuf
+from gi.repository import GLib, Gtk, Gdk, GdkPixbuf
 import os
 import shutil
 
