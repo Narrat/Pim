@@ -313,14 +313,10 @@ class Pim:
     def main(self):
         self.parse_args()
 
-        # Segfaults
-        #screen = Gdk.Screen()
-        #self.sWidth = screen.get_width()
-        #self.sHeight = screen.get_height()
-        #self.sRatio = float(self.sWidth) / float(self.sHeight)
-        self.sWidth = 1200
-        self.sHeight = 800
-        self.sRatio = self.sWidth / self.sHeight
+        screen = Gdk.Screen()
+        self.sWidth = screen.width()
+        self.sHeight = screen.height()
+        self.sRatio = float(self.sWidth) / float(self.sHeight)
 
         self.win = Gtk.Window()
         self.win.connect('destroy', Gtk.main_quit)
