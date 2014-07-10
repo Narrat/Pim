@@ -152,13 +152,13 @@ class Pim:
     def get_fullscreen_zoom_percent(self):
         pboWidth = self.pixbufOriginal.get_width()
         pboHeight = self.pixbufOriginal.get_height()
-        pbRatio = float(pboWidth) / float(pboHeight)
+        pbRatio = pboWidth / pboHeight
 
         if pbRatio > self.sRatio:
             #pixbuf is proportionally wider than screen
-            return float(self.sWidth) / float(pboWidth)
+            return self.sWidth / pboWidth
         else:
-            return float(self.sHeight) / float(pboHeight)
+            return self.sHeight / pboHeight
 
 
     def update_image(self):
@@ -316,7 +316,7 @@ class Pim:
         screen = Gdk.Screen()
         self.sWidth = screen.width()
         self.sHeight = screen.height()
-        self.sRatio = float(self.sWidth) / float(self.sHeight)
+        self.sRatio = self.sWidth / self.sHeight
 
         self.win = Gtk.Window()
         self.win.connect('destroy', Gtk.main_quit)
