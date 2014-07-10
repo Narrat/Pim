@@ -4,4 +4,4 @@ All options / bindings can be found at the top of the file in the `__init__` fun
 
 Pim is released under the MIT license.
 
-Dependencies: python2, pygtk
+Dependencies: pygobject (Python bindings for GObject) for python3

@@ -27,7 +27,7 @@
 from optparse import OptionParser
 from random import shuffle
 import mimetypes
-import glib
+from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
@@ -132,9 +132,9 @@ class Pim:
     def toggle_slideshow(self):
         self.slideshow = not self.slideshow
         if self.slideshow:
-            self.timer_id = glib.timeout_add_seconds(self.slideshow_delay, self.move_index, 1)
+            self.timer_id = GLib.timeout_add_seconds(self.slideshow_delay, self.move_index, 1)
         else:
-            glib.source_remove(self.timer_id)
+            GLib.source_remove(self.timer_id)
         self.update_title()
 
 
