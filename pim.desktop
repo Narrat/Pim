@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=pim
+GenericName=Image Viewer
+Comment=PyGobject based image viewer with vim like keybindings
+Exec=pim %F
+MimeType=image/bmp;image/gif;image/jpeg;image/jp2;image/jpeg2000;image/jpx;image/png;image/svg;image/tiff;

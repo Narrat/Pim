@@ -8,7 +8,6 @@
 # status text
 # better shift masking
 # rotating
-# pim.desktop
 # mouse panning / keybinds
 # fit width / height
 # marking (echo $current >> pim-marked)
