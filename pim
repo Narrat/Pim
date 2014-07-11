@@ -75,8 +75,8 @@ class Pim:
             (0,              Gdk.KEY_g,     self.scroll, Gtk.ScrollType.START, False),
             (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_G,     self.scroll, Gtk.ScrollType.END, False),
 
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_T,     self.zoom_delta, -.5),
-            (0,              Gdk.KEY_t,     self.zoom_delta, +.5),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_T,     self.zoom_delta, -.25),
+            (0,              Gdk.KEY_t,     self.zoom_delta, +.25),
             (0,              Gdk.KEY_b,     self.move_index, -1),
             (0,              Gdk.KEY_e,     self.toggle_slideshow),
             (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_X,     self.delete, -1),
@@ -136,25 +136,31 @@ class Pim:
 
     def toggle_fullscreen(self):
         self.fullscreen = not self.fullscreen
+
         if self.fullscreen:
             self.win.fullscreen()
-            self.zoom_percent = self.get_fullscreen_zoom_percent()
         else:
             self.win.unfullscreen()
-            self.zoom_percent = 1
+        self.zoom_percent = self.get_zoom_percent()
         self.update_image()
 
 
-    def get_fullscreen_zoom_percent(self):
+    def get_zoom_percent(self):
         pboWidth = self.pixbufOriginal.get_width()
         pboHeight = self.pixbufOriginal.get_height()
         pbRatio = pboWidth / pboHeight
 
-        if pbRatio > self.sRatio:
-            #pixbuf is proportionally wider than screen
-            return self.sWidth / pboWidth
+        winWidth = self.sWidth // 1.6
+        winHeight = self.sHeight // 1.33
+
+        if pboWidth < winWidth and pboHeight < winHeight:
+            return 1
         else:
-            return self.sHeight / pboHeight
+            if pbRatio > self.sRatio:
+                #pixbuf is proportionally wider than screen
+                return winWidth / pboWidth
+            else:
+                return winHeight / pboHeight
 
 
     def update_image(self):
@@ -162,6 +168,7 @@ class Pim:
 
         pboWidth = self.pixbufOriginal.get_width()
         pboHeight = self.pixbufOriginal.get_height()
+
         if self.zoom_percent is 1:
             pixbufFinal = self.pixbufOriginal
             pbfWidth = pboWidth
@@ -174,15 +181,11 @@ class Pim:
         self.image.set_from_pixbuf(pixbufFinal)
 
         self.update_title()
-        if not self.fullscreen:
-            self.resize_window(pbfWidth, pbfHeight)
 
 
-    def resize_window(self, pbfWidth, pbfHeight):
-        #this doesn't work well with the scrollbars. I don't know if I just need to call some random function or if it's a gtk bug.
-        #http://www.gtkforums.com/about6831.html
-        winWidth = pbfWidth if pbfWidth < self.sWidth else self.sWidth
-        winHeight = pbfHeight if pbfHeight < self.sHeight else self.sHeight
+    def set_default_window_size(self):
+        winWidth = int(self.sWidth / 1.6)
+        winHeight = int(self.sHeight / 1.3)
 
         self.win.resize(winWidth, winHeight)
 
@@ -198,7 +201,7 @@ class Pim:
 
 
     def zoom_to(self, percent):
-        self.zoom_percent = percent if percent else self.get_fullscreen_zoom_percent()
+        self.zoom_percent = percent if percent else self.get_zoom_percent()
         self.update_image()
 
 
@@ -212,10 +215,7 @@ class Pim:
         path = self.paths[self.index]
         self.pixbufOriginal = GdkPixbuf.Pixbuf.new_from_file(path)
         if not self.zoom_lock:
-            if self.fullscreen:
-                self.zoom_percent = self.get_fullscreen_zoom_percent()
-            else:
-                self.zoom_percent = 1
+            self.zoom_percent = self.get_zoom_percent()
         self.update_image()
 
         self.scroll(Gtk.ScrollType.START, False)
@@ -332,6 +332,7 @@ class Pim:
 
         self.move_index(0)
         self.win.show_all()
+        self.set_default_window_size()
         if self.fullscreen:
             self.win.fullscreen()
         Gtk.main()
