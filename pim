@@ -189,7 +189,7 @@ class Pim:
 
 
     def update_title(self):
-        self.win.set_title("pim %d/%d %d%% %s%s" % (self.index, len(self.paths),
+        self.win.set_title("pim %d/%d %d%% %s%s" % (self.index+1, len(self.paths),
             self.zoom_percent * 100, self.paths[self.index], ' [slideshow]' if self.slideshow else ''))
 
 
