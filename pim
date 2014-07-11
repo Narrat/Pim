@@ -150,17 +150,16 @@ class Pim:
         pboHeight = self.pixbufOriginal.get_height()
         pbRatio = pboWidth / pboHeight
 
-        winWidth = self.sWidth // 1.6
-        winHeight = self.sHeight // 1.33
+        winSize = self.win.get_size()
 
-        if pboWidth < winWidth and pboHeight < winHeight:
+        if pboWidth < winSize[0] and pboHeight < winSize[1]:
             return 1
         else:
             if pbRatio > self.sRatio:
                 #pixbuf is proportionally wider than screen
-                return winWidth / pboWidth
+                return winSize[0] / pboWidth
             else:
-                return winHeight / pboHeight
+                return winSize[1] / pboHeight
 
 
     def update_image(self):
@@ -327,12 +326,13 @@ class Pim:
         viewport.set_shadow_type(Gtk.ShadowType.NONE)
         self.scrolled_win.add(viewport)
 
+        self.set_default_window_size()
+
         self.image = Gtk.Image()
         viewport.add(self.image)
 
         self.move_index(0)
         self.win.show_all()
-        self.set_default_window_size()
         if self.fullscreen:
             self.win.fullscreen()
         Gtk.main()
