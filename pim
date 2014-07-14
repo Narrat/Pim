@@ -22,7 +22,7 @@
 
 ### Pim ###
 # A Python image viewer with vim-like keybindings.
-# v0.3.0
+# v0.3.0.1
 
 from optparse import OptionParser
 from random import shuffle
@@ -254,9 +254,8 @@ class Pim:
             arg = args[0]
             if os.path.isfile(arg):
                 #use parent directory
-                single = args[0]
-                abspath = os.path.abspath(single)
-                directory = os.path.dirname(abspath)
+                single = os.path.abspath(args[0])
+                directory = os.path.dirname(single)
                 args = (directory,)
             elif os.path.isdir(arg) and self.remember_position:
                 try:
