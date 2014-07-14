@@ -183,8 +183,8 @@ class Pim:
 
 
     def set_default_window_size(self):
-        winWidth = int(self.sWidth / 1.6)
-        winHeight = int(self.sHeight / 1.3)
+        winWidth = 800 if self.sWidth >= 800 else self.sWidth
+        winHeight = 600 if self.sHeight >= 600 else self.sHeight
 
         self.win.resize(winWidth, winHeight)
 
