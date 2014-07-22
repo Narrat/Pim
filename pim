@@ -3,7 +3,6 @@
 # Copyright (c) 2010 James Campos
 
 ### TODO ###
-# resolve scrollbar issue
 # hide pointer in fullscreen
 # status text
 # better shift masking
@@ -148,14 +147,12 @@ class Pim:
     def get_zoom_percent(self):
         pboWidth = self.pixbufOriginal.get_width()
         pboHeight = self.pixbufOriginal.get_height()
-        pbRatio = pboWidth / pboHeight
-
         winSize = self.win.get_size()
 
         if pboWidth < winSize[0] and pboHeight < winSize[1]:
             return 1
         else:
-            if pbRatio > self.sRatio:
+            if pboWidth >= pboHeight:
                 #pixbuf is proportionally wider than screen
                 return winSize[0] / pboWidth
             else:
@@ -312,7 +309,6 @@ class Pim:
         screen = Gdk.Screen()
         self.sWidth = screen.width()
         self.sHeight = screen.height()
-        self.sRatio = self.sWidth / self.sHeight
 
         self.win = Gtk.Window()
         self.win.connect('destroy', Gtk.main_quit)
