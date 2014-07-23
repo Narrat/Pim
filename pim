@@ -138,16 +138,24 @@ class Pim:
 
         if self.fullscreen:
             self.win.fullscreen()
+            # Save previous window size. Possible since get_size gets old value
+            # And this is also the cause for some problems (zoomfactor for fullscreen on non fullscreen window)
+            self.Sizes['wSize'] = self.win.get_size()
         else:
             self.win.unfullscreen()
         self.zoom_percent = self.get_zoom_percent()
+
         self.update_image()
 
 
     def get_zoom_percent(self):
         pboWidth = self.pixbufOriginal.get_width()
         pboHeight = self.pixbufOriginal.get_height()
-        winSize = self.win.get_size()
+
+        if self.fullscreen:
+            winSize = (self.Sizes['sWidth'], self.Sizes['sHeight'])
+        else:
+            winSize = self.Sizes['wSize']
 
         if pboWidth < winSize[0] and pboHeight < winSize[1]:
             return 1
@@ -180,8 +188,8 @@ class Pim:
 
 
     def set_default_window_size(self):
-        winWidth = 800 if self.sWidth >= 800 else self.sWidth
-        winHeight = 600 if self.sHeight >= 600 else self.sHeight
+        winWidth = 800 if self.Sizes['sWidth'] >= 800 else self.Sizes['sWidth']
+        winHeight = 600 if self.Sizes['sHeight'] >= 600 else self.Sizes['sHeight']
 
         self.win.resize(winWidth, winHeight)
 
@@ -197,6 +205,8 @@ class Pim:
 
 
     def zoom_to(self, percent):
+        if self.fullscreen == False:
+            self.Sizes['wSize'] = self.win.get_size()
         self.zoom_percent = percent if percent else self.get_zoom_percent()
         self.update_image()
 
@@ -211,6 +221,8 @@ class Pim:
         path = self.paths[self.index]
         self.pixbufOriginal = GdkPixbuf.Pixbuf.new_from_file(path)
         if not self.zoom_lock:
+            if self.fullscreen == False:
+                self.Sizes['wSize'] = self.win.get_size()
             self.zoom_percent = self.get_zoom_percent()
         self.update_image()
 
@@ -307,8 +319,9 @@ class Pim:
         self.parse_args()
 
         screen = Gdk.Screen()
-        self.sWidth = screen.width()
-        self.sHeight = screen.height()
+        self.Sizes = {}
+        self.Sizes['sWidth'] = screen.width()
+        self.Sizes['sHeight'] = screen.height()
 
         self.win = Gtk.Window()
         self.win.connect('destroy', Gtk.main_quit)
@@ -323,6 +336,7 @@ class Pim:
         self.scrolled_win.add(viewport)
 
         self.set_default_window_size()
+        self.Sizes['wSize'] = self.win.get_size()
 
         self.image = Gtk.Image()
         viewport.add(self.image)
