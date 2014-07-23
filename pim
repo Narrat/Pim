@@ -11,7 +11,6 @@
 # fit width / height
 # marking (echo $current >> pim-marked)
 # set as wallpaper
-# animated gifs
 
 ### Thanks ###
 # alterecco, for making [visible](http://drop.dotright.net/visible) (dead),
@@ -173,6 +172,13 @@ class Pim:
         pboWidth = self.pixbufOriginal.get_width()
         pboHeight = self.pixbufOriginal.get_height()
 
+        if self.pixbufOriginal.is_static_image():
+            self.pixbufOriginal = self.pixbufOriginal.get_static_image()
+            changed = True
+        else:
+            self.zoom_percent = 1
+            changed = False
+
         if self.zoom_percent is 1:
             pixbufFinal = self.pixbufOriginal
             pbfWidth = pboWidth
@@ -182,7 +188,10 @@ class Pim:
             pbfHeight = int(pboHeight * self.zoom_percent)
             pixbufFinal = self.pixbufOriginal.scale_simple(
                     pbfWidth, pbfHeight, GdkPixbuf.InterpType.BILINEAR)
-        self.image.set_from_pixbuf(pixbufFinal)
+        if changed:
+            self.image.set_from_pixbuf(pixbufFinal)
+        else:
+            self.image.set_from_animation(pixbufFinal)
 
         self.update_title()
 
@@ -219,7 +228,7 @@ class Pim:
             shuffle(self.paths)
 
         path = self.paths[self.index]
-        self.pixbufOriginal = GdkPixbuf.Pixbuf.new_from_file(path)
+        self.pixbufOriginal = GdkPixbuf.PixbufAnimation.new_from_file(path)
         if not self.zoom_lock:
             if self.fullscreen == False:
                 self.Sizes['wSize'] = self.win.get_size()
