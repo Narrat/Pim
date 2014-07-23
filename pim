@@ -23,7 +23,7 @@
 # A Python image viewer with vim-like keybindings.
 # v0.3.0.1
 
-from optparse import OptionParser
+import argparse
 from random import shuffle
 import mimetypes
 from gi.repository import GLib, Gtk, Gdk, GdkPixbuf
@@ -225,14 +225,15 @@ class Pim:
 
 
     def parse_args(self):
-        usage = "usage: %prog [options] path1 [path2 path3 ...]"
-        parser = OptionParser(usage=usage)
-        parser.add_option("-r", "--random", action="store_true", dest="random", help="randomize filelist", default=self.random)
-        parser.add_option("-R", "--no-random", action="store_false",   dest="random", help="don't randomize")
-        (options, args) = parser.parse_args()
-        self.random = options.random
+        usage = '%(prog)s [options] path1 [path2 path3 ...]'
+        parser = argparse.ArgumentParser(usage=usage)
+        parser.add_argument("-r", "--random", action="store_true", dest="random", help="randomize filelist", default=self.random)
+        parser.add_argument("-R", "--no-random", action="store_false",   dest="random", help="don't randomize")
+        parser.add_argument("path", nargs='+')
+        args = parser.parse_args()
+        self.random = args.random
 
-        if len(args) is 0:
+        if len(args.path) is 0:
             parser.error('need at least one path!')
 
         if not self.populate(args):
@@ -247,13 +248,14 @@ class Pim:
         for pixbuf_format in GdkPixbuf.Pixbuf.get_formats():
             types.extend(pixbuf_format.get_mime_types())
 
-        #if only one arg passed, do special stuff
+        args = args.path
+        # If only one path is passed do special stuff
         single = None
         if len(args) is 1:
             arg = args[0]
             if os.path.isfile(arg):
                 #use parent directory
-                single = os.path.abspath(args[0])
+                single = os.path.abspath(arg)
                 directory = os.path.dirname(single)
                 args = (directory,)
             elif os.path.isdir(arg) and self.remember_position:
