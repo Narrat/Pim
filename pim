@@ -19,7 +19,7 @@
 
 ### Pim ###
 # A Python image viewer with vim-like keybindings.
-# v0.4.0
+# v0.4.1
 
 import argparse
 from random import shuffle
@@ -172,12 +172,15 @@ class Pim:
         pboWidth = self.pixbufOriginal.get_width()
         pboHeight = self.pixbufOriginal.get_height()
 
-        if self.pixbufOriginal.is_static_image():
-            self.pixbufOriginal = self.pixbufOriginal.get_static_image()
+        if str(type(self.pixbufOriginal)) == "<class 'gi.repository.GdkPixbuf.Pixbuf'>":
             changed = True
         else:
-            self.zoom_percent = 1
-            changed = False
+            if self.pixbufOriginal.is_static_image():
+                self.pixbufOriginal = self.pixbufOriginal.get_static_image()
+                changed = True
+            else:
+                self.zoom_percent = 1
+                changed = False
 
         if self.zoom_percent is 1:
             pixbufFinal = self.pixbufOriginal
