@@ -142,7 +142,8 @@ class Pim:
             self.Sizes['wSize'] = self.win.get_size()
         else:
             self.win.unfullscreen()
-        self.zoom_percent = self.get_zoom_percent()
+        if not self.zoom_lock:
+            self.zoom_percent = self.get_zoom_percent()
 
         self.update_image()
 
