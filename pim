@@ -31,7 +31,6 @@ class Pim:
     def __init__(self):
         self.fullscreen = False
         self.geometry = "800x600"
-        self.remember_position = False
         self.slideshow = False
         self.slideshow_delay = 5
         self.shuffle = False
@@ -41,6 +40,7 @@ class Pim:
             #(modifer, key, function, args)
             #supported modifiers: Gdk.ModifierType.SHIFT_MASK, Gdk.ModifierType.CONTROL_MASK, Gdk.ModifierType.MOD1_MASK (alt key)
             (0,              Gdk.KEY_q,     self.quit),
+            (Gdk.ModifierType.SHIFT_MASK,   Gdk.KEY_Q,     self.quit, True),
             (0,              Gdk.KEY_f,     self.toggle_fullscreen),
 
             #if True, scroll in the horizontal direction.
@@ -104,8 +104,8 @@ class Pim:
             self.move_index(delta)
 
 
-    def quit(self):
-        if self.remember_position and len(self.paths):
+    def quit(self, remember_position = False):
+        if remember_position and len(self.paths):
             try:
                 f = open('pim-position', 'w')
                 f.writelines(self.paths[self.index])
@@ -316,7 +316,7 @@ class Pim:
                 single = os.path.abspath(arg)
                 directory = os.path.dirname(single)
                 args = (directory,)
-            elif os.path.isdir(arg) and self.remember_position:
+            elif os.path.isdir(arg):
                 try:
                     f = open('pim-position')
                     single = f.read()
