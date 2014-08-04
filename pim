@@ -211,6 +211,8 @@ class Pim:
         winHeight = 600 if self.Sizes['sHeight'] >= 600 else self.Sizes['sHeight']
 
         self.win.resize(winWidth, winHeight)
+        if self.fullscreen:
+            self.win.fullscreen()
 
 
     def update_title(self):
@@ -260,9 +262,11 @@ class Pim:
         parser = argparse.ArgumentParser(usage=usage)
         parser.add_argument("-r", "--random", action="store_true", dest="random", help="randomize filelist", default=self.random)
         parser.add_argument("-R", "--no-random", action="store_false",   dest="random", help="don't randomize")
+        parser.add_argument("-f", "--fullscreen", action="store_true", dest="fullscreen", help="start in fullscreen", default=self.fullscreen)
         parser.add_argument("path", nargs='+')
         args = parser.parse_args()
         self.random = args.random
+        self.fullscreen = args.fullscreen
 
         if len(args.path) is 0:
             parser.error('need at least one path!')
