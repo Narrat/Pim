@@ -32,7 +32,7 @@ class Pim:
         self.fullscreen = False
         self.slideshow = False
         self.slideshow_delay = 5
-        self.random = False
+        self.shuffle = False
         self.remember_position = False
         self.zoom_lock = False
 
@@ -236,7 +236,7 @@ class Pim:
         self.index = (self.index + delta) % len(self.paths)
 
         #reshuffle on wrap-around
-        if self.random and self.index is 0 and delta > 0:
+        if self.shuffle and self.index is 0 and delta > 0:
             shuffle(self.paths)
 
         path = self.paths[self.index]
@@ -260,13 +260,13 @@ class Pim:
     def parse_args(self):
         usage = '%(prog)s [options] path1 [path2 path3 ...]'
         parser = argparse.ArgumentParser(usage=usage)
-        parser.add_argument("-r", "--random", action="store_true", dest="random", help="randomize filelist", default=self.random)
-        parser.add_argument("-R", "--no-random", action="store_false",   dest="random", help="don't randomize")
         parser.add_argument("-f", "--fullscreen", action="store_true", dest="fullscreen", help="start in fullscreen", default=self.fullscreen)
+        parser.add_argument("-s", "--shuffle", action="store_true", dest="shuffle", help="shuffle filelist", default=self.shuffle)
+        parser.add_argument("-S", "--no-shuffle", action="store_false",   dest="shuffle", help="don't shuffle the filelist")
         parser.add_argument("path", nargs='+')
         args = parser.parse_args()
-        self.random = args.random
         self.fullscreen = args.fullscreen
+        self.shuffle = args.shuffle
 
         if len(args.path) is 0:
             parser.error('need at least one path!')
@@ -317,7 +317,7 @@ class Pim:
         self.paths = [path for path in self.paths if mimetypes.guess_type(path)[0] in types]
 
         #shuffle
-        if self.random:
+        if self.shuffle:
             shuffle(self.paths)
 
         #complete special stuff for single arg
