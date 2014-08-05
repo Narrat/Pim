@@ -19,7 +19,7 @@
 
 ### Pim ###
 # A Python image viewer with vim-like keybindings.
-# v0.4.1
+# v0.4.2
 
 import argparse
 from random import shuffle
