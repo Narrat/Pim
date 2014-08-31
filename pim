@@ -238,7 +238,7 @@ class Pim:
 
         path = self.paths[self.index]
         if not os.path.exists(path):
-            print("Error: Couldn't open", path)
+            print("::Error: Couldn't open", path)
             self.delete()
         else:
             self.pixbufOriginal = GdkPixbuf.PixbufAnimation.new_from_file(path)
@@ -334,7 +334,7 @@ class Pim:
                 args = bind[3:]
                 funk(*args)
                 return
-        print(event)
+        print("::Warning: Unrecognized key:", event)
 
 
     def main(self):
