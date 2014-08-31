@@ -283,11 +283,13 @@ class Pim:
         parser.add_argument("-g", "--geometry", dest="geometry", help="set window size", default=self.geometry)
         parser.add_argument("-s", "--shuffle", action="store_true", dest="shuffle", help="shuffle filelist", default=self.shuffle)
         parser.add_argument("-S", "--no-shuffle", action="store_false",   dest="shuffle", help="don't shuffle the filelist")
+        parser.add_argument("--slideshow-delay", type=int, help="set the slideshow delay", default=self.slideshow_delay)
         parser.add_argument("path", nargs='+')
         args = parser.parse_args()
         self.fullscreen = args.fullscreen
         self.geometry = args.geometry
         self.shuffle = args.shuffle
+        self.slideshow_delay = args.slideshow_delay
 
         if len(args.path) is 0:
             parser.error('need at least one path!')
