@@ -30,10 +30,11 @@ import shutil
 class Pim:
     def __init__(self):
         self.fullscreen = False
+        self.geometry = "800x600"
+        self.remember_position = False
         self.slideshow = False
         self.slideshow_delay = 5
         self.shuffle = False
-        self.remember_position = False
         self.zoom_lock = False
 
         self.binds = (
@@ -206,9 +207,27 @@ class Pim:
         self.update_title()
 
 
+    def parse_geometry(self):
+        # Not nice, but adding type=int to argparse won't help because of the x
+        # ToDo: Look for a better solution
+        if self.geometry.find('x') >= 0:
+            self.geometry = self.geometry.split('x')
+            for ele in range(0, len(self.geometry)):
+                if len(self.geometry[ele]) > 0:
+                    self.geometry[ele] = int(self.geometry[ele])
+                else:
+                    print("::Warning: Missing geometry parameter. Replacing with default")
+                    self.geometry[ele] = 200*(4-ele)
+        else:
+            print("::Warning: The geometry should be like that: 800x600\n::Falling back to default")
+            self.geometry = "800x600"
+            self.parse_geometry()
+
+
     def set_default_window_size(self):
-        winWidth = 800 if self.Sizes['sWidth'] >= 800 else self.Sizes['sWidth']
-        winHeight = 600 if self.Sizes['sHeight'] >= 600 else self.Sizes['sHeight']
+        self.parse_geometry()
+        winWidth = self.geometry[0] if self.Sizes['sWidth'] >= 800 else self.Sizes['sWidth']
+        winHeight = self.geometry[1] if self.Sizes['sHeight'] >= 600 else self.Sizes['sHeight']
 
         self.win.resize(winWidth, winHeight)
         if self.fullscreen:
@@ -261,11 +280,13 @@ class Pim:
         usage = '%(prog)s [options] path1 [path2 path3 ...]'
         parser = argparse.ArgumentParser(usage=usage)
         parser.add_argument("-f", "--fullscreen", action="store_true", dest="fullscreen", help="start in fullscreen", default=self.fullscreen)
+        parser.add_argument("-g", "--geometry", dest="geometry", help="set window size", default=self.geometry)
         parser.add_argument("-s", "--shuffle", action="store_true", dest="shuffle", help="shuffle filelist", default=self.shuffle)
         parser.add_argument("-S", "--no-shuffle", action="store_false",   dest="shuffle", help="don't shuffle the filelist")
         parser.add_argument("path", nargs='+')
         args = parser.parse_args()
         self.fullscreen = args.fullscreen
+        self.geometry = args.geometry
         self.shuffle = args.shuffle
 
         if len(args.path) is 0:
