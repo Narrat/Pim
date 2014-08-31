@@ -334,7 +334,7 @@ class Pim:
                 args = bind[3:]
                 funk(*args)
                 return
-        print("::Warning: Unrecognized key:", event)
+        print("::Warning: Unrecognized key:", event.string)
 
 
     def main(self):
