@@ -91,6 +91,7 @@ class Pim:
 
     def delete(self, delta = 0):
         current = self.paths[self.index]
+        print("Moving %s into trash (/tmp/pim-trash/)" % current)
         self.paths.remove(current)
         if os.path.exists(current):
             if not os.path.isdir('/tmp/pim-trash'):
