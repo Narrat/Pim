@@ -6,7 +6,6 @@
 # hide pointer in fullscreen
 # status text
 # better shift masking
-# rotating
 # mouse panning / keybinds
 # fit width / height
 # marking (echo $current >> pim-marked)
@@ -87,6 +86,9 @@ class Pim:
             #back to fullscreen
             (0,              Gdk.KEY_5,    self.zoom_to, 0),
 
+            (Gdk.ModifierType.SHIFT_MASK,   Gdk.KEY_greater,    self.rotate, 1),
+            (0,              Gdk.KEY_less,    self.rotate, 3),
+
             (0,              Gdk.KEY_space, self.move_index, 1),
             (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_space, self.move_index, -1),
             )
@@ -147,6 +149,15 @@ class Pim:
             self.zoom_percent = self.get_zoom_percent()
 
         self.update_image()
+
+
+    def rotate(self, cwise):
+        if str(type(self.pixbufOriginal)) == "<class 'gi.repository.GdkPixbuf.Pixbuf'>":
+            self.pixbufOriginal = self.pixbufOriginal.rotate_simple((90*cwise))
+
+            if not self.zoom_lock:
+                self.zoom_percent = self.get_zoom_percent()
+            self.update_image()
 
 
     def get_zoom_percent(self):
