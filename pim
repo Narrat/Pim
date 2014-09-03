@@ -152,20 +152,22 @@ class Pim:
     def get_zoom_percent(self):
         pboWidth = self.pixbufOriginal.get_width()
         pboHeight = self.pixbufOriginal.get_height()
+        pboScale = pboWidth / pboHeight
 
         if self.fullscreen:
             winSize = (self.Sizes['sWidth'], self.Sizes['sHeight'])
+            wScale = self.Sizes['sWidth'] / self.Sizes['sHeight']
         else:
             winSize = self.Sizes['wSize']
+            wScale = self.Sizes['wSize'][0] / self.Sizes['wSize'][1]
 
         if pboWidth < winSize[0] and pboHeight < winSize[1]:
             return 1
         else:
-            if pboWidth >= pboHeight:
-                #pixbuf is proportionally wider than screen
-                return winSize[0] / pboWidth
-            else:
+            if pboScale < wScale:
                 return winSize[1] / pboHeight
+            else:
+                return winSize[0] / pboWidth
 
 
     def update_image(self):
