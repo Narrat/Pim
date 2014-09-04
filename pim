@@ -7,7 +7,6 @@
 # status text
 # better shift masking
 # mouse panning / keybinds
-# fit width / height
 # marking (echo $current >> pim-marked)
 # set as wallpaper
 
@@ -59,23 +58,13 @@ class Pim:
             (0,              Gdk.KEY_Up,    self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
             (0,              Gdk.KEY_Right, self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
 
-            (0,              Gdk.KEY_w,     self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
-            (0,              Gdk.KEY_a,     self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
-            (0,              Gdk.KEY_s,     self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
-            (0,              Gdk.KEY_d,     self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
-
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_W,     self.scroll, Gtk.ScrollType.PAGE_BACKWARD, False),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_A,     self.scroll, Gtk.ScrollType.PAGE_BACKWARD, True),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_S,     self.scroll, Gtk.ScrollType.PAGE_FORWARD, False),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_D,     self.scroll, Gtk.ScrollType.PAGE_FORWARD, True),
-
             (0,              Gdk.KEY_g,     self.scroll, Gtk.ScrollType.START, False),
             (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_G,     self.scroll, Gtk.ScrollType.END, False),
 
             (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_T,     self.zoom_delta, -.25),
             (0,              Gdk.KEY_t,     self.zoom_delta, +.25),
             (0,              Gdk.KEY_b,     self.move_index, -1),
-            (0,              Gdk.KEY_e,     self.toggle_slideshow),
+            (0,              Gdk.KEY_s,     self.toggle_slideshow),
             (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_X,     self.delete, -1),
             (0,              Gdk.KEY_x,     self.delete, 0),
             (0,              Gdk.KEY_z,     self.toggle_zoom_lock),
@@ -83,8 +72,10 @@ class Pim:
             (0,              Gdk.KEY_1,    self.zoom_to, 1),
             (0,              Gdk.KEY_2,    self.zoom_to, 2),
             (0,              Gdk.KEY_3,    self.zoom_to, 3),
-            #back to fullscreen
-            (0,              Gdk.KEY_5,    self.zoom_to, 0),
+            # Fit into window
+            (0,              Gdk.KEY_w,    self.zoom_to, 0),
+            (0,              Gdk.KEY_e,    self.zoom_to, 0, True, False),
+            (Gdk.ModifierType.SHIFT_MASK,   Gdk.KEY_E,  self.zoom_to, 0, False, True),
 
             (Gdk.ModifierType.SHIFT_MASK,   Gdk.KEY_greater,    self.rotate, 1),
             (0,              Gdk.KEY_less,    self.rotate, 3),
@@ -160,7 +151,7 @@ class Pim:
             self.update_image()
 
 
-    def get_zoom_percent(self):
+    def get_zoom_percent(self, zWidth=False, zHeight=False):
         pboWidth = self.pixbufOriginal.get_width()
         pboHeight = self.pixbufOriginal.get_height()
         pboScale = pboWidth / pboHeight
@@ -172,13 +163,13 @@ class Pim:
             winSize = self.Sizes['wSize']
             wScale = self.Sizes['wSize'][0] / self.Sizes['wSize'][1]
 
-        if pboWidth < winSize[0] and pboHeight < winSize[1]:
+        dir = zWidth | zHeight
+        if pboWidth < winSize[0] and pboHeight < winSize[1] and not dir:
             return 1
+        elif (pboScale < wScale and not dir) or zHeight:
+            return winSize[1] / pboHeight
         else:
-            if pboScale < wScale:
-                return winSize[1] / pboHeight
-            else:
-                return winSize[0] / pboWidth
+            return winSize[0] / pboWidth
 
 
     def update_image(self):
@@ -231,10 +222,10 @@ class Pim:
         self.update_image()
 
 
-    def zoom_to(self, percent):
+    def zoom_to(self, percent, zWidth=False, zHeight=False):
         if self.fullscreen == False:
             self.Sizes['wSize'] = self.win.get_size()
-        self.zoom_percent = percent if percent else self.get_zoom_percent()
+        self.zoom_percent = percent if percent else self.get_zoom_percent(zWidth, zHeight)
         self.update_image()
 
 
