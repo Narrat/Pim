@@ -96,6 +96,14 @@ class Pim:
         if os.path.exists(current):
             if not os.path.isdir('/tmp/pim-trash'):
                 os.mkdir('/tmp/pim-trash')
+            # Check if there is already a file with that name at /tmp/pim-trash
+            delfile = "/tmp/pim-trash/"+os.path.basename(current)
+            if os.path.exists(delfile):
+                for i in range(0, 1000):
+                    ndelfile = delfile+"."+str(i)
+                    if not os.path.exists(ndelfile):
+                        shutil.move(delfile, ndelfile)
+                        break
             print("Moving %s into trash (/tmp/pim-trash/)" % current)
             shutil.move(current, '/tmp/pim-trash')
         if len(self.paths) == 0:
