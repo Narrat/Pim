@@ -251,24 +251,29 @@ class Pim:
             shuffle(self.paths)
 
         path = self.paths[self.index]
-        if not os.path.exists(path):
-            print("::Error: Couldn't open", path)
-            self.delete()
-            return
-        else:
-            self.pixbufOriginal = GdkPixbuf.PixbufAnimation.new_from_file(path)
-        if self.pixbufOriginal.is_static_image():
-            self.pixbufOriginal = self.pixbufOriginal.get_static_image()
-            if not self.zoom_lock:
-                if self.fullscreen == False:
-                    self.Sizes['wSize'] = self.win.get_size()
-                self.zoom_percent = self.get_zoom_percent()
-        else:
-            self.zoom_percent = 1
-        self.update_image()
+        try:
+            if not os.path.exists(path):
+                print("::Error: Couldn't open", path)
+                self.delete()
+                return
+            else:
+                self.pixbufOriginal = GdkPixbuf.PixbufAnimation.new_from_file(path)
+            if self.pixbufOriginal.is_static_image():
+                self.pixbufOriginal = self.pixbufOriginal.get_static_image()
+                if not self.zoom_lock:
+                    if self.fullscreen == False:
+                        self.Sizes['wSize'] = self.win.get_size()
+                    self.zoom_percent = self.get_zoom_percent()
+            else:
+                self.zoom_percent = 1
+            self.update_image()
 
-        self.scroll(Gtk.ScrollType.START, False)
-        self.scroll(Gtk.ScrollType.START, True)
+            self.scroll(Gtk.ScrollType.START, False)
+            self.scroll(Gtk.ScrollType.START, True)
+
+        except GLib.Error as err:
+            print(err)
+            self.move_index(delta)
 
         return True #for the slideshow
 
