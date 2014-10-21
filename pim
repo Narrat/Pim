@@ -230,15 +230,17 @@ class Pim:
 
 
     def zoom_delta(self, delta):
-        self.zoom_percent = self.zoom_percent + delta
-        self.update_image()
+        if str(type(self.pixbufOriginal)) == "<class 'gi.repository.GdkPixbuf.Pixbuf'>":
+            self.zoom_percent = self.zoom_percent + delta
+            self.update_image()
 
 
     def zoom_to(self, percent, zWidth=False, zHeight=False):
-        if self.fullscreen == False:
-            self.Sizes['wSize'] = self.win.get_size()
-        self.zoom_percent = percent if percent else self.get_zoom_percent(zWidth, zHeight)
-        self.update_image()
+        if str(type(self.pixbufOriginal)) == "<class 'gi.repository.GdkPixbuf.Pixbuf'>":
+            if self.fullscreen == False:
+                self.Sizes['wSize'] = self.win.get_size()
+            self.zoom_percent = percent if percent else self.get_zoom_percent(zWidth, zHeight)
+            self.update_image()
 
 
     def move_index(self, delta):
