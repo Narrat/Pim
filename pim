@@ -153,12 +153,14 @@ class Pim:
 
 
     def rotate(self, cwise):
-        if str(type(self.pixbufOriginal)) == "<class 'gi.repository.GdkPixbuf.Pixbuf'>":
+        try:
             self.pixbufOriginal = self.pixbufOriginal.rotate_simple((90*cwise))
 
             if not self.zoom_lock:
                 self.zoom_percent = self.get_zoom_percent()
             self.update_image()
+        except:
+            print("::Warning: Animation object cannot be rotated")
 
 
     def get_zoom_percent(self, zWidth=False, zHeight=False):
@@ -197,9 +199,9 @@ class Pim:
             pbfHeight = int(pboHeight * self.zoom_percent)
             pixbufFinal = self.pixbufOriginal.scale_simple(
                     pbfWidth, pbfHeight, GdkPixbuf.InterpType.BILINEAR)
-        if str(type(self.pixbufOriginal)) == "<class 'gi.repository.GdkPixbuf.Pixbuf'>":
+        try:
             self.image.set_from_pixbuf(pixbufFinal)
-        else:
+        except:
             self.image.set_from_animation(pixbufFinal)
 
         self.update_title()
@@ -238,17 +240,21 @@ class Pim:
 
 
     def zoom_delta(self, delta):
-        if str(type(self.pixbufOriginal)) == "<class 'gi.repository.GdkPixbuf.Pixbuf'>":
+        try:
             self.zoom_percent = self.zoom_percent + delta
             self.update_image()
+        except:
+            print("::Warning: Animation object cannot be zoomed")
 
 
     def zoom_to(self, percent, zWidth=False, zHeight=False):
-        if str(type(self.pixbufOriginal)) == "<class 'gi.repository.GdkPixbuf.Pixbuf'>":
+        try:
             if self.fullscreen == False:
                 self.Sizes['wSize'] = self.win.get_size()
             self.zoom_percent = percent if percent else self.get_zoom_percent(zWidth, zHeight)
             self.update_image()
+        except:
+            print("::Warning: Animation object cannot be zoomed")
 
 
     def move_index(self, delta):
