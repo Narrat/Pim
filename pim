@@ -254,6 +254,7 @@ class Pim:
         if not os.path.exists(path):
             print("::Error: Couldn't open", path)
             self.delete()
+            return
         else:
             self.pixbufOriginal = GdkPixbuf.PixbufAnimation.new_from_file(path)
         if self.pixbufOriginal.is_static_image():
