@@ -3,7 +3,6 @@
 # Copyright (c) 2010 James Campos
 
 ### TODO ###
-# hide pointer in fullscreen
 # status text
 # better shift masking
 # mouse panning / keybinds
@@ -29,6 +28,7 @@ import shutil
 
 class Pim:
     def __init__(self):
+        self.cur_hide_delay = 2
         self.fullscreen = False
         self.geometry = "800x600"
         self.slideshow = False
@@ -368,6 +368,15 @@ class Pim:
         return len(self.paths)
 
 
+    def cursor_hide(self):
+        self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR))
+
+
+    def handle_cursor_move(self, *unused):
+        self.cur_timer_id = GLib.timeout_add_seconds(self.cur_hide_delay, self.cursor_hide)
+        self.win.get_window().set_cursor(None)
+
+
     def handle_key_press(self, widget, event):
         #ignore everything but shift, control, and alt modifiers
         state = event.get_state() & (Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.MOD1_MASK)
@@ -389,9 +398,13 @@ class Pim:
         self.Sizes['sWidth'] = screen.width()
         self.Sizes['sHeight'] = screen.height()
 
+        self.cur_timer_id = GLib.timeout_add_seconds(self.cur_hide_delay, self.cursor_hide)
+
         self.win = Gtk.Window()
+        self.win.add_events(Gdk.EventMask.KEY_PRESS_MASK | Gdk.EventMask.POINTER_MOTION_MASK)
         self.win.connect('destroy', Gtk.main_quit)
         self.win.connect("key_press_event", self.handle_key_press)
+        self.win.connect("motion-notify-event", self.handle_cursor_move)
 
         self.scrolled_win = Gtk.ScrolledWindow()
         self.win.add(self.scrolled_win)
