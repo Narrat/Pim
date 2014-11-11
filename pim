@@ -6,7 +6,6 @@
 # status text
 # better shift masking
 # mouse panning / keybinds
-# marking (echo $current >> pim-marked)
 # set as wallpaper
 
 ### Thanks ###
@@ -31,6 +30,7 @@ class Pim:
         self.cur_hide_delay = 2
         self.fullscreen = False
         self.geometry = "800x600"
+        self.marked = []
         self.slideshow = False
         self.slideshow_delay = 5
         self.shuffle = False
@@ -69,6 +69,7 @@ class Pim:
             (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_X,     self.delete, -1),
             (0,              Gdk.KEY_x,     self.delete, 0),
             (0,              Gdk.KEY_z,     self.toggle_zoom_lock),
+            (0,              Gdk.KEY_m,     self.mark),
 
             (0,              Gdk.KEY_1,    self.zoom_to, 1),
             (0,              Gdk.KEY_2,    self.zoom_to, 2),
@@ -120,6 +121,9 @@ class Pim:
                 f.close()
             except IOError as e:
                 print(e)
+        for pos in self.marked:
+            print(pos)
+
         Gtk.main_quit()
 
 
@@ -366,6 +370,10 @@ class Pim:
             self.index = 0
 
         return len(self.paths)
+
+
+    def mark(self):
+        self.marked.append(self.paths[self.index])
 
 
     def cursor_hide(self):
