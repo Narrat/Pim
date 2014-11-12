@@ -311,9 +311,6 @@ class Pim:
         self.shuffle = args.shuffle
         self.slideshow_delay = args.slideshow_delay
 
-        if len(args.path) is 0:
-            parser.error('need at least one path!')
-
         if not self.populate(args):
             parser.error('no loadable images detected')
 
