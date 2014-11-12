@@ -10,12 +10,12 @@
 
 ### Thanks ###
 # alterecco, for making [visible](http://drop.dotright.net/visible) (dead),
-#   and inspiring me (James Campos) to make this program.
+# and inspiring me (James Campos) to make this program.
 
 
 ### Pim ###
-# A Python image viewer with vim-like keybindings.
-# v0.5.2
+# Python image viewer with vim-like keybindings
+# v0.6.0
 
 import argparse
 from random import shuffle
