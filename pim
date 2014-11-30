@@ -194,19 +194,14 @@ class Pim:
         pboWidth = self.pixbufOriginal.get_width()
         pboHeight = self.pixbufOriginal.get_height()
 
-        if self.zoom_percent is 1:
-            pixbufFinal = self.pixbufOriginal
-            pbfWidth = pboWidth
-            pbfHeight = pboHeight
-        else:
+        try:
             pbfWidth = int(pboWidth * self.zoom_percent)
             pbfHeight = int(pboHeight * self.zoom_percent)
             pixbufFinal = self.pixbufOriginal.scale_simple(
                     pbfWidth, pbfHeight, GdkPixbuf.InterpType.BILINEAR)
-        try:
             self.image.set_from_pixbuf(pixbufFinal)
         except:
-            self.image.set_from_animation(pixbufFinal)
+            self.image.set_from_animation(self.pixbufOriginal)
 
         self.update_title()
 
