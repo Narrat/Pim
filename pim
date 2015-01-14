@@ -30,6 +30,8 @@ class Pim:
         self.cur_hide_delay = 2
         self.fullscreen = False
         self.geometry = "800x600"
+        self.scrollbar = True
+        self.scroll_step = 20
         self.slideshow = False
         self.slideshow_delay = 5
         self.shuffle = False
@@ -132,7 +134,26 @@ class Pim:
 
 
     def scroll(self, scrolltype, horizontal):
-        self.scrolled_win.emit('scroll-child', scrolltype, horizontal)
+        #self.scrolled_win.emit('scroll-child', scrolltype, horizontal)
+        if horizontal:
+            adj = self.scrolled_win.get_hadjustment()
+        else:
+            adj = self.scrolled_win.get_vadjustment()
+
+        view_size = adj.get_page_size()
+        val_cur = adj.get_value()
+        val_max = adj.get_upper() - view_size
+
+        if scrolltype == Gtk.ScrollType.STEP_FORWARD:
+            val_dst = min(val_cur + self.scroll_step, val_max)
+        elif scrolltype == Gtk.ScrollType.STEP_BACKWARD:
+            val_dst = max(val_cur - self.scroll_step, 0)
+        elif scrolltype == Gtk.ScrollType.START:
+            val_dst = 0
+        elif scrolltype == Gtk.ScrollType.END:
+            val_dst = val_max
+
+        adj.set_value(val_dst)
 
 
     def toggle_slideshow(self):
@@ -303,11 +324,14 @@ class Pim:
         parser.add_argument("-g", "--geometry", dest="geometry", help="set window size", default=self.geometry)
         parser.add_argument("-s", "--shuffle", action="store_true", dest="shuffle", help="shuffle filelist", default=self.shuffle)
         parser.add_argument("-S", "--no-shuffle", action="store_false",   dest="shuffle", help="don't shuffle the filelist")
+        parser.add_argument("--scrollbars", action="store_true", dest="scrollbar", help="display scrollbars")
+        parser.add_argument("--no-scrollbars", action="store_false", dest="scrollbar", help="don't display scrollbars", default=self.scrollbar)
         parser.add_argument("--slideshow-delay", type=int, help="set the slideshow delay", default=self.slideshow_delay)
         parser.add_argument("path", nargs='+')
         args = parser.parse_args()
         self.fullscreen = args.fullscreen
         self.geometry = args.geometry
+        self.scrollbar = args.scrollbar
         self.shuffle = args.shuffle
         self.slideshow_delay = args.slideshow_delay
 
@@ -410,11 +434,14 @@ class Pim:
 
         self.win = Gtk.Window()
         self.win.add_events(Gdk.EventMask.KEY_PRESS_MASK | Gdk.EventMask.POINTER_MOTION_MASK)
+        self.win.set_property('allow-shrink', True) # Else the no-scrollbar options will cause serious problems
         self.win.connect('destroy', Gtk.main_quit)
         self.win.connect("key_press_event", self.handle_key_press)
         self.win.connect("motion-notify-event", self.handle_cursor_move)
 
         self.scrolled_win = Gtk.ScrolledWindow()
+        if not self.scrollbar:
+            self.scrolled_win.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
         self.win.add(self.scrolled_win)
 
         viewport = Gtk.Viewport()
