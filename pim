@@ -3,7 +3,6 @@
 # Copyright (c) 2010 James Campos
 
 ### TODO ###
-# status text
 # better shift masking
 # mouse panning / keybinds
 # set as wallpaper
@@ -33,6 +32,7 @@ class Pim:
         self.slideshow = False
         self.slideshow_delay = 5
         self.shuffle = False
+        self.sbar = False
         self.zoom_lock = False
 
         self.paths = []
@@ -44,6 +44,7 @@ class Pim:
             (0,              Gdk.KEY_q,     self.quit),
             (Gdk.ModifierType.SHIFT_MASK,   Gdk.KEY_Q,     self.quit, True),
             (0,              Gdk.KEY_f,     self.toggle_fullscreen),
+            (0,              Gdk.KEY_b,     self.toggle_statusbar),
 
             #if True, scroll in the horizontal direction.
             (0,              Gdk.KEY_h,     self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
@@ -66,7 +67,7 @@ class Pim:
 
             (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_T,     self.zoom_delta, -.25),
             (0,              Gdk.KEY_t,     self.zoom_delta, +.25),
-            (0,              Gdk.KEY_b,     self.move_index, -1),
+            (0,              Gdk.KEY_p,     self.move_index, -1),
             (0,              Gdk.KEY_s,     self.toggle_slideshow),
             (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_X,     self.delete, -1),
             (0,              Gdk.KEY_x,     self.delete, 0),
@@ -141,7 +142,7 @@ class Pim:
             self.timer_id = GLib.timeout_add_seconds(self.slideshow_delay, self.move_index, 1)
         else:
             GLib.source_remove(self.timer_id)
-        self.update_title()
+        self.update_info()
 
 
     def toggle_fullscreen(self):
@@ -158,6 +159,14 @@ class Pim:
             self.zoom_percent = self.get_zoom_percent()
 
         self.update_image()
+
+
+    def toggle_statusbar(self):
+        if not self.sbar:
+            Gtk.Widget.hide(self.statusbar)
+        else:
+            Gtk.Widget.show(self.statusbar)
+        self.sbar = not self.sbar
 
 
     def rotate(self, cwise):
@@ -207,7 +216,7 @@ class Pim:
         except:
             self.image.set_from_animation(self.pixbufOriginal)
 
-        self.update_title()
+        self.update_info()
 
 
     def parse_geometry(self):
@@ -237,10 +246,12 @@ class Pim:
             self.win.fullscreen()
 
 
-    def update_title(self):
-        self.win.set_title("pim %d/%d %d%% %s%s %s" % (self.index+1,
-            len(self.paths), self.zoom_percent * 100, self.paths[self.index],
-            ' [slideshow]' if self.slideshow else '', '*' if self.paths[self.index] in self.marked else ''))
+    def update_info(self):
+        message = "[{0}/{1}] [ {3:3.0f}% ]  {2: <50} {5: <3} {4: <11}".format(self.index+1,
+            len(self.paths), self.paths[self.index], self.zoom_percent * 100,
+            '[slideshow]' if self.slideshow else '', '[*]' if self.paths[self.index] in self.marked else '')
+        self.win.set_title("pim "+message)
+        self.statusbar.push(1, message)
 
 
     def zoom_delta(self, delta):
@@ -301,6 +312,7 @@ class Pim:
     def parse_args(self):
         usage = '%(prog)s [options] path1 [path2 path3 ...]'
         parser = argparse.ArgumentParser(usage=usage)
+        parser.add_argument("-b", "--bar", action="store_true", dest="sbar", help="display statusbar", default=self.sbar)
         parser.add_argument("-f", "--fullscreen", action="store_true", dest="fullscreen", help="start in fullscreen", default=self.fullscreen)
         parser.add_argument("-g", "--geometry", dest="geometry", help="set window size", default=self.geometry)
         parser.add_argument("-s", "--shuffle", action="store_true", dest="shuffle", help="shuffle filelist", default=self.shuffle)
@@ -308,6 +320,7 @@ class Pim:
         parser.add_argument("--slideshow-delay", type=int, help="set the slideshow delay", default=self.slideshow_delay)
         parser.add_argument("path", nargs='+')
         args = parser.parse_args()
+        self.sbar = args.sbar
         self.fullscreen = args.fullscreen
         self.geometry = args.geometry
         self.shuffle = args.shuffle
@@ -373,7 +386,7 @@ class Pim:
             self.marked.remove(self.paths[self.index])
         else:
             self.marked.append(self.paths[self.index])
-        self.update_title()
+        self.update_info()
 
 
     def cursor_hide(self):
@@ -414,8 +427,11 @@ class Pim:
         self.win.connect("key_press_event", self.handle_key_press)
         self.win.connect("motion-notify-event", self.handle_cursor_move)
 
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.win.add(self.vbox)
+
         self.scrolled_win = Gtk.ScrolledWindow()
-        self.win.add(self.scrolled_win)
+        self.vbox.pack_start(self.scrolled_win, True, True, 0)
 
         viewport = Gtk.Viewport()
         viewport.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse('#999999'))
@@ -428,10 +444,14 @@ class Pim:
         self.image = Gtk.Image()
         viewport.add(self.image)
 
+        self.statusbar = Gtk.Statusbar()
+        self.vbox.pack_end(self.statusbar, False, False, 0)
+
         self.move_index(0)
         self.win.show_all()
         if self.fullscreen:
             self.win.fullscreen()
+        self.toggle_statusbar()
         Gtk.main()
 
 
