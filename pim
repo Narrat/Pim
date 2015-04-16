@@ -333,12 +333,10 @@ class Pim:
                 single = os.path.abspath(arg)
                 directory = os.path.dirname(single)
                 args = (directory,)
-            elif os.path.isdir(arg):
-                try:
-                    f = open('pim-position')
-                    single = f.read()
-                except IOError as e:
-                    print(e)
+            elif os.path.isdir(arg) and os.path.isfile('pim-position'):
+                f = open('pim-position')
+                single = f.read()
+                print("Found position file. Starting with: "+single)
 
         #add everything
         for arg in args:
