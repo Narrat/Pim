@@ -246,6 +246,8 @@ class Pim:
     def zoom_delta(self, delta):
         try:
             self.zoom_percent = self.zoom_percent + delta
+            if self.zoom_percent <= 0:
+                self.zoom_percent = 1/100
             self.update_image()
         except:
             print("::Warning: Animation object cannot be zoomed")
