@@ -5,7 +5,6 @@
 ### TODO ###
 # better shift masking
 # mouse panning / keybinds
-# set as wallpaper
 
 ### Thanks ###
 # alterecco, for making [visible](http://drop.dotright.net/visible) (dead),
@@ -14,7 +13,7 @@
 
 ### Pim ###
 # Python image viewer with vim-like keybindings
-# v0.6.0
+# v0.7.0
 
 import argparse
 from random import shuffle
