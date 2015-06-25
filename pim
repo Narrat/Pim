@@ -2,16 +2,16 @@
 
 # Copyright (c) 2010 James Campos
 
-### TODO ###
+# ToDo
 # better shift masking
 # mouse panning / keybinds
 
-### Thanks ###
+# Thanks
 # alterecco, for making [visible](http://drop.dotright.net/visible) (dead),
 # and inspiring me (James Campos) to make this program.
 
 
-### Pim ###
+# Pim
 # Python image viewer with vim-like keybindings
 # v0.7.0
 
@@ -38,62 +38,67 @@ class Pim:
         self.marked = []
 
         self.binds = (
-            #(modifer, key, function, args)
-            #supported modifiers: Gdk.ModifierType.SHIFT_MASK, Gdk.ModifierType.CONTROL_MASK, Gdk.ModifierType.MOD1_MASK (alt key)
-            (0,              Gdk.KEY_q,     self.quit),
-            (Gdk.ModifierType.SHIFT_MASK,   Gdk.KEY_Q,     self.quit, True),
-            (0,              Gdk.KEY_f,     self.toggle_fullscreen),
-            (0,              Gdk.KEY_b,     self.toggle_statusbar),
+            # (modifer, key, function, args)
+            # supported modifiers: Gdk.ModifierType.SHIFT_MASK,
+            # Gdk.ModifierType.CONTROL_MASK, Gdk.ModifierType.MOD1_MASK (Alt)
+            (0, Gdk.KEY_q, self.quit),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_Q, self.quit, True),
+            (0, Gdk.KEY_f, self.toggle_fullscreen),
+            (0, Gdk.KEY_b, self.toggle_statusbar),
 
-            #if True, scroll in the horizontal direction.
-            (0,              Gdk.KEY_h,     self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
-            (0,              Gdk.KEY_j,     self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
-            (0,              Gdk.KEY_k,     self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
-            (0,              Gdk.KEY_l,     self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
+            # if True, scroll in the horizontal direction.
+            (0, Gdk.KEY_h, self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
+            (0, Gdk.KEY_j, self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
+            (0, Gdk.KEY_k, self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
+            (0, Gdk.KEY_l, self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
 
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_H,     self.scroll, Gtk.ScrollType.PAGE_BACKWARD, True),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_J,     self.scroll, Gtk.ScrollType.PAGE_FORWARD, False),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_K,     self.scroll, Gtk.ScrollType.PAGE_BACKWARD, False),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_L,     self.scroll, Gtk.ScrollType.PAGE_FORWARD, True),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_H,
+             self.scroll, Gtk.ScrollType.PAGE_BACKWARD, True),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_J,
+             self.scroll, Gtk.ScrollType.PAGE_FORWARD, False),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_K,
+             self.scroll, Gtk.ScrollType.PAGE_BACKWARD, False),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_L,
+             self.scroll, Gtk.ScrollType.PAGE_FORWARD, True),
 
-            (0,              Gdk.KEY_Left,  self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
-            (0,              Gdk.KEY_Down,  self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
-            (0,              Gdk.KEY_Up,    self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
-            (0,              Gdk.KEY_Right, self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
+            (0, Gdk.KEY_Left, self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
+            (0, Gdk.KEY_Down, self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
+            (0, Gdk.KEY_Up, self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
+            (0, Gdk.KEY_Right, self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
 
-            (0,              Gdk.KEY_g,     self.scroll, Gtk.ScrollType.START, False),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_G,     self.scroll, Gtk.ScrollType.END, False),
+            (0, Gdk.KEY_g, self.scroll, Gtk.ScrollType.START, False),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_G,
+             self.scroll, Gtk.ScrollType.END, False),
 
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_T,     self.zoom_delta, -.25),
-            (0,              Gdk.KEY_t,     self.zoom_delta, +.25),
-            (0,              Gdk.KEY_p,     self.move_index, -1),
-            (0,              Gdk.KEY_s,     self.toggle_slideshow),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_X,     self.delete, -1),
-            (0,              Gdk.KEY_x,     self.delete, 0),
-            (0,              Gdk.KEY_z,     self.toggle_zoom_lock),
-            (0,              Gdk.KEY_m,     self.mark),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_T, self.zoom_delta, -.25),
+            (0, Gdk.KEY_t, self.zoom_delta, +.25),
+            (0, Gdk.KEY_p, self.move_index, -1),
+            (0, Gdk.KEY_s, self.toggle_slideshow),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_X, self.delete, -1),
+            (0, Gdk.KEY_x, self.delete, 0),
+            (0, Gdk.KEY_z, self.toggle_zoom_lock),
+            (0, Gdk.KEY_m, self.mark),
 
-            (0,              Gdk.KEY_1,    self.zoom_to, 1),
-            (0,              Gdk.KEY_2,    self.zoom_to, 2),
-            (0,              Gdk.KEY_3,    self.zoom_to, 3),
+            (0, Gdk.KEY_1, self.zoom_to, 1),
+            (0, Gdk.KEY_2, self.zoom_to, 2),
+            (0, Gdk.KEY_3, self.zoom_to, 3),
             # Fit into window
-            (0,              Gdk.KEY_w,    self.zoom_to, 0),
-            (0,              Gdk.KEY_e,    self.zoom_to, 0, True, False),
-            (Gdk.ModifierType.SHIFT_MASK,   Gdk.KEY_E,  self.zoom_to, 0, False, True),
+            (0, Gdk.KEY_w, self.zoom_to, 0),
+            (0, Gdk.KEY_e, self.zoom_to, 0, True, False),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_E,
+             self.zoom_to, 0, False, True),
 
-            (Gdk.ModifierType.SHIFT_MASK,   Gdk.KEY_greater,    self.rotate, 1),
-            (0,              Gdk.KEY_less,    self.rotate, 3),
+            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_greater, self.rotate, 1),
+            (0, Gdk.KEY_less, self.rotate, 3),
 
-            (0,              Gdk.KEY_space, self.move_index, 1),
+            (0, Gdk.KEY_space, self.move_index, 1),
             (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_space, self.move_index, -1),
             )
-
 
     def toggle_zoom_lock(self):
         self.zoom_lock = not self.zoom_lock
 
-
-    def delete(self, delta = 0):
+    def delete(self, delta=0):
         current = self.paths[self.index]
         self.paths.remove(current)
         if current in self.marked:
@@ -109,15 +114,14 @@ class Pim:
                     if not os.path.exists(ndelfile):
                         shutil.move(delfile, ndelfile)
                         break
-            print("Moving %s into trash (/tmp/pim-trash/)" % current)
+            print("Moving {} into trash (/tmp/pim-trash/)".format(current))
             shutil.move(current, '/tmp/pim-trash')
         if len(self.paths) == 0:
             self.quit()
         else:
             self.move_index(delta)
 
-
-    def quit(self, remember_position = False):
+    def quit(self, remember_position=False):
         if remember_position and len(self.paths):
             try:
                 f = open('pim-position', 'w')
@@ -130,19 +134,17 @@ class Pim:
 
         Gtk.main_quit()
 
-
     def scroll(self, scrolltype, horizontal):
         self.scrolled_win.emit('scroll-child', scrolltype, horizontal)
-
 
     def toggle_slideshow(self):
         self.slideshow = not self.slideshow
         if self.slideshow:
-            self.timer_id = GLib.timeout_add_seconds(self.slideshow_delay, self.move_index, 1)
+            self.timer_id = GLib.timeout_add_seconds(self.slideshow_delay,
+                                                     self.move_index, 1)
         else:
             GLib.source_remove(self.timer_id)
         self.update_info()
-
 
     def toggle_fullscreen(self):
         self.fullscreen = not self.fullscreen
@@ -150,7 +152,8 @@ class Pim:
         if self.fullscreen:
             self.win.fullscreen()
             # Save previous window size. Possible since get_size gets old value
-            # And this is also the cause for some problems (zoomfactor for fullscreen on non fullscreen window)
+            # And this is also the cause for some problems
+            # (zoomfactor for fullscreen on non fullscreen window)
             self.Sizes['wSize'] = self.win.get_size()
         else:
             self.win.unfullscreen()
@@ -159,14 +162,12 @@ class Pim:
 
         self.update_image()
 
-
     def toggle_statusbar(self):
         if not self.sbar:
             Gtk.Widget.hide(self.statusbar)
         else:
             Gtk.Widget.show(self.statusbar)
         self.sbar = not self.sbar
-
 
     def rotate(self, cwise):
         try:
@@ -177,7 +178,6 @@ class Pim:
             self.update_image()
         except:
             print("::Warning: Animation object cannot be rotated")
-
 
     def get_zoom_percent(self, zWidth=False, zHeight=False):
         pboWidth = self.pixbufOriginal.get_width()
@@ -199,7 +199,6 @@ class Pim:
         else:
             return winSize[0] / pboWidth
 
-
     def update_image(self):
         ''' Show the final image '''
 
@@ -210,13 +209,12 @@ class Pim:
             pbfWidth = int(pboWidth * self.zoom_percent)
             pbfHeight = int(pboHeight * self.zoom_percent)
             pixbufFinal = self.pixbufOriginal.scale_simple(
-                    pbfWidth, pbfHeight, GdkPixbuf.InterpType.BILINEAR)
+                pbfWidth, pbfHeight, GdkPixbuf.InterpType.BILINEAR)
             self.image.set_from_pixbuf(pixbufFinal)
         except:
             self.image.set_from_animation(self.pixbufOriginal)
 
         self.update_info()
-
 
     def parse_geometry(self):
         # Not nice, but adding type=int to argparse won't help because of the x
@@ -227,13 +225,14 @@ class Pim:
                 if len(self.geometry[ele]) > 0:
                     self.geometry[ele] = int(self.geometry[ele])
                 else:
-                    print("::Warning: Missing geometry parameter. Replacing with default")
+                    print("::Warning: Missing geometry parameter."
+                          " Replacing with default")
                     self.geometry[ele] = 200*(4-ele)
         else:
-            print("::Warning: The geometry should be like that: 800x600\n::Falling back to default")
+            print("::Warning: The geometry should be like that: 800x600"
+                  "\n::Falling back to default")
             self.geometry = "800x600"
             self.parse_geometry()
-
 
     def set_default_window_size(self):
         self.parse_geometry()
@@ -244,14 +243,13 @@ class Pim:
         if self.fullscreen:
             self.win.fullscreen()
 
-
     def update_info(self):
-        message = "[{0}/{1}] [ {3:3.0f}% ]  {2: <50} {5: <3} {4: <11}".format(self.index+1,
-            len(self.paths), self.paths[self.index], self.zoom_percent * 100,
-            '[slideshow]' if self.slideshow else '', '[*]' if self.paths[self.index] in self.marked else '')
+        message = "[{0}/{1}] [ {3:3.0f}% ]  {2: <50} {5: <3} {4: <11}".format(
+            self.index+1, len(self.paths), self.paths[self.index],
+            self.zoom_percent * 100, '[slideshow]' if self.slideshow else '',
+            '[*]' if self.paths[self.index] in self.marked else '')
         self.win.set_title("pim "+message)
         self.statusbar.push(1, message)
-
 
     def zoom_delta(self, delta):
         try:
@@ -262,21 +260,19 @@ class Pim:
         except:
             print("::Warning: Animation object cannot be zoomed")
 
-
     def zoom_to(self, percent, zWidth=False, zHeight=False):
         try:
-            if self.fullscreen == False:
+            if not self.fullscreen:
                 self.Sizes['wSize'] = self.win.get_size()
             self.zoom_percent = percent if percent else self.get_zoom_percent(zWidth, zHeight)
             self.update_image()
         except:
             print("::Warning: Animation object cannot be zoomed")
 
-
     def move_index(self, delta):
         self.index = (self.index + delta) % len(self.paths)
 
-        #reshuffle on wrap-around
+        # reshuffle on wrap-around
         if self.shuffle and self.index is 0 and delta > 0:
             shuffle(self.paths)
 
@@ -291,7 +287,7 @@ class Pim:
             if self.pixbufOriginal.is_static_image():
                 self.pixbufOriginal = self.pixbufOriginal.get_static_image()
                 if not self.zoom_lock:
-                    if self.fullscreen == False:
+                    if not self.fullscreen:
                         self.Sizes['wSize'] = self.win.get_size()
                     self.zoom_percent = self.get_zoom_percent()
             else:
@@ -305,18 +301,26 @@ class Pim:
             print(err)
             self.move_index(delta)
 
-        return True #for the slideshow
-
+        return True  # for the slideshow
 
     def parse_args(self):
         usage = '%(prog)s [options] path1 [path2 path3 ...]'
         parser = argparse.ArgumentParser(usage=usage)
-        parser.add_argument("-b", "--bar", action="store_true", dest="sbar", help="display statusbar", default=self.sbar)
-        parser.add_argument("-f", "--fullscreen", action="store_true", dest="fullscreen", help="start in fullscreen", default=self.fullscreen)
-        parser.add_argument("-g", "--geometry", dest="geometry", help="set window size", default=self.geometry)
-        parser.add_argument("-s", "--shuffle", action="store_true", dest="shuffle", help="shuffle filelist", default=self.shuffle)
-        parser.add_argument("-S", "--no-shuffle", action="store_false",   dest="shuffle", help="don't shuffle the filelist")
-        parser.add_argument("--slideshow-delay", type=int, help="set the slideshow delay", default=self.slideshow_delay)
+        parser.add_argument("-b", "--bar", action="store_true", dest="sbar",
+                            help="display statusbar", default=self.sbar)
+        parser.add_argument("-f", "--fullscreen", action="store_true",
+                            dest="fullscreen", help="start in fullscreen",
+                            default=self.fullscreen)
+        parser.add_argument("-g", "--geometry", dest="geometry",
+                            help="set window size", default=self.geometry)
+        parser.add_argument("-s", "--shuffle", action="store_true",
+                            dest="shuffle", help="shuffle filelist",
+                            default=self.shuffle)
+        parser.add_argument("-S", "--no-shuffle", action="store_false",
+                            dest="shuffle", help="don't shuffle the filelist")
+        parser.add_argument("--slideshow-delay", type=int,
+                            help="set the slideshow delay",
+                            default=self.slideshow_delay)
         parser.add_argument("path", nargs='+')
         args = parser.parse_args()
         self.sbar = args.sbar
@@ -328,11 +332,10 @@ class Pim:
         if not self.populate(args):
             parser.error('no loadable images detected')
 
-
     def populate(self, args):
         ''' Generate a list of paths from the given arguments '''
 
-        #get supported mimetypes
+        # get supported mimetypes
         types = []
         for pixbuf_format in GdkPixbuf.Pixbuf.get_formats():
             types.extend(pixbuf_format.get_mime_types())
@@ -343,7 +346,7 @@ class Pim:
         if len(args) is 1:
             arg = args[0]
             if os.path.isfile(arg):
-                #use parent directory
+                # use parent directory
                 single = os.path.abspath(arg)
                 directory = os.path.dirname(single)
                 args = (directory,)
@@ -352,7 +355,7 @@ class Pim:
                 single = f.read()
                 print("Found position file. Starting with: "+single)
 
-        #add everything
+        # add everything
         for arg in args:
             path = os.path.abspath(arg)
             if os.path.isfile(path):
@@ -362,23 +365,22 @@ class Pim:
                 paths.sort()
                 self.paths.extend(paths)
             else:
-                print("%s is not a valid path!" % arg)
+                print("{} is not a valid path!".format(arg))
 
-        #remove unsupported files
+        # remove unsupported files
         self.paths = [path for path in self.paths if mimetypes.guess_type(path)[0] in types]
 
-        #shuffle
+        # shuffle
         if self.shuffle:
             shuffle(self.paths)
 
-        #complete special stuff for single arg
+        # complete special stuff for single arg
         if single and single in self.paths:
             self.index = self.paths.index(single)
         else:
             self.index = 0
 
         return len(self.paths)
-
 
     def mark(self):
         if self.paths[self.index] in self.marked:
@@ -387,19 +389,19 @@ class Pim:
             self.marked.append(self.paths[self.index])
         self.update_info()
 
-
     def cursor_hide(self):
         self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR))
 
-
     def handle_cursor_move(self, *unused):
-        self.cur_timer_id = GLib.timeout_add_seconds(self.cur_hide_delay, self.cursor_hide)
+        self.cur_timer_id = GLib.timeout_add_seconds(self.cur_hide_delay,
+                                                     self.cursor_hide)
         self.win.get_window().set_cursor(None)
 
-
     def handle_key_press(self, widget, event):
-        #ignore everything but shift, control, and alt modifiers
-        state = event.get_state() & (Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.MOD1_MASK)
+        # ignore everything but shift, control, and alt modifiers
+        state = event.get_state() & (Gdk.ModifierType.SHIFT_MASK |
+                                     Gdk.ModifierType.CONTROL_MASK |
+                                     Gdk.ModifierType.MOD1_MASK)
         keyval = event.keyval
         for bind in self.binds:
             if keyval == bind[1] and state == bind[0]:
@@ -409,7 +411,6 @@ class Pim:
                 return
         print("::Warning: Unrecognized key:", event.string)
 
-
     def main(self):
         self.parse_args()
 
@@ -418,10 +419,12 @@ class Pim:
         self.Sizes['sWidth'] = screen.width()
         self.Sizes['sHeight'] = screen.height()
 
-        self.cur_timer_id = GLib.timeout_add_seconds(self.cur_hide_delay, self.cursor_hide)
+        self.cur_timer_id = GLib.timeout_add_seconds(self.cur_hide_delay,
+                                                     self.cursor_hide)
 
         self.win = Gtk.Window()
-        self.win.add_events(Gdk.EventMask.KEY_PRESS_MASK | Gdk.EventMask.POINTER_MOTION_MASK)
+        self.win.add_events(Gdk.EventMask.KEY_PRESS_MASK |
+                            Gdk.EventMask.POINTER_MOTION_MASK)
         self.win.connect('destroy', Gtk.main_quit)
         self.win.connect("key_press_event", self.handle_key_press)
         self.win.connect("motion-notify-event", self.handle_cursor_move)
