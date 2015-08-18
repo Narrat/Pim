@@ -428,6 +428,7 @@ class Pim:
         self.win.connect('destroy', Gtk.main_quit)
         self.win.connect("key_press_event", self.handle_key_press)
         self.win.connect("motion-notify-event", self.handle_cursor_move)
+        self.win.set_icon_name("image-x-generic")
 
         self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.win.add(self.vbox)
