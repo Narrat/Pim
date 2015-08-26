@@ -299,6 +299,8 @@ class Pim:
 
         except GLib.Error as err:
             print(err)
+            if not delta:
+                delta = 1
             self.move_index(delta)
 
         return True  # for the slideshow
