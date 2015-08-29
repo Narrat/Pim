@@ -3,7 +3,6 @@
 # Copyright (c) 2010 James Campos
 
 # ToDo
-# better shift masking
 # mouse panning / keybinds
 
 # Thanks
@@ -38,61 +37,55 @@ class Pim:
         self.marked = []
 
         self.binds = (
-            # (modifer, key, function, args)
-            # supported modifiers: Gdk.ModifierType.SHIFT_MASK,
-            # Gdk.ModifierType.CONTROL_MASK, Gdk.ModifierType.MOD1_MASK (Alt)
-            (0, Gdk.KEY_q, self.quit),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_Q, self.quit, True),
-            (0, Gdk.KEY_f, self.toggle_fullscreen),
-            (0, Gdk.KEY_b, self.toggle_statusbar),
+            # (modifier+key, function, args)
+            # supported modifiers: Shift (through uppercase)
+            # Ctrl (through ^), Alt (through Alt+)
+            ("q", self.quit),
+            ("Q", self.quit, True),
+            ("f", self.toggle_fullscreen),
+            ("b", self.toggle_statusbar),
 
             # if True, scroll in the horizontal direction.
-            (0, Gdk.KEY_h, self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
-            (0, Gdk.KEY_j, self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
-            (0, Gdk.KEY_k, self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
-            (0, Gdk.KEY_l, self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
+            ("h", self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
+            ("j", self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
+            ("k", self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
+            ("l", self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
 
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_H,
-             self.scroll, Gtk.ScrollType.PAGE_BACKWARD, True),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_J,
-             self.scroll, Gtk.ScrollType.PAGE_FORWARD, False),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_K,
-             self.scroll, Gtk.ScrollType.PAGE_BACKWARD, False),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_L,
-             self.scroll, Gtk.ScrollType.PAGE_FORWARD, True),
+            ("H", self.scroll, Gtk.ScrollType.PAGE_BACKWARD, True),
+            ("J", self.scroll, Gtk.ScrollType.PAGE_FORWARD, False),
+            ("K", self.scroll, Gtk.ScrollType.PAGE_BACKWARD, False),
+            ("L", self.scroll, Gtk.ScrollType.PAGE_FORWARD, True),
 
-            (0, Gdk.KEY_Left, self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
-            (0, Gdk.KEY_Down, self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
-            (0, Gdk.KEY_Up, self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
-            (0, Gdk.KEY_Right, self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
+            ("Left", self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
+            ("Down", self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
+            ("Up", self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
+            ("Right", self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
 
-            (0, Gdk.KEY_g, self.scroll, Gtk.ScrollType.START, False),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_G,
-             self.scroll, Gtk.ScrollType.END, False),
+            ("g", self.scroll, Gtk.ScrollType.START, False),
+            ("G", self.scroll, Gtk.ScrollType.END, False),
 
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_T, self.zoom_delta, -.25),
-            (0, Gdk.KEY_t, self.zoom_delta, +.25),
-            (0, Gdk.KEY_p, self.move_index, -1),
-            (0, Gdk.KEY_s, self.toggle_slideshow),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_X, self.delete, -1),
-            (0, Gdk.KEY_x, self.delete, 0),
-            (0, Gdk.KEY_z, self.toggle_zoom_lock),
-            (0, Gdk.KEY_m, self.mark),
+            ("T", self.zoom_delta, -.25),
+            ("t", self.zoom_delta, +.25),
+            ("p", self.move_index, -1),
+            ("s", self.toggle_slideshow),
+            ("X", self.delete, -1),
+            ("x", self.delete, 0),
+            ("z", self.toggle_zoom_lock),
+            ("m", self.mark),
 
-            (0, Gdk.KEY_1, self.zoom_to, 1),
-            (0, Gdk.KEY_2, self.zoom_to, 2),
-            (0, Gdk.KEY_3, self.zoom_to, 3),
+            ("1", self.zoom_to, 1),
+            ("2", self.zoom_to, 2),
+            ("3", self.zoom_to, 3),
             # Fit into window
-            (0, Gdk.KEY_w, self.zoom_to, 0),
-            (0, Gdk.KEY_e, self.zoom_to, 0, True, False),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_E,
-             self.zoom_to, 0, False, True),
+            ("w", self.zoom_to, 0),
+            ("e", self.zoom_to, 0, True, False),
+            ("E", self.zoom_to, 0, False, True),
 
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_greater, self.rotate, 1),
-            (0, Gdk.KEY_less, self.rotate, 3),
+            ("greater", self.rotate, 1),
+            ("less", self.rotate, 3),
 
-            (0, Gdk.KEY_space, self.move_index, 1),
-            (Gdk.ModifierType.SHIFT_MASK, Gdk.KEY_space, self.move_index, -1),
+            ("space", self.move_index, 1),
+            ("SPACE", self.move_index, -1),
             )
 
     def toggle_zoom_lock(self):
@@ -398,15 +391,28 @@ class Pim:
         self.win.get_window().set_cursor(None)
 
     def handle_key_press(self, widget, event):
-        # ignore everything but shift, control, and alt modifiers
-        state = event.get_state() & (Gdk.ModifierType.SHIFT_MASK |
-                                     Gdk.ModifierType.CONTROL_MASK |
-                                     Gdk.ModifierType.MOD1_MASK)
         keyval = event.keyval
+        keyname = Gdk.keyval_name(keyval)
+        if keyval == Gdk.KEY_Shift_L or keyval == Gdk.KEY_Shift_R:
+            return
+        elif keyval == Gdk.KEY_Alt_L or keyval == Gdk.KEY_Alt_R:
+            return
+        elif keyval == Gdk.KEY_Control_L or keyval == Gdk.KEY_Control_R:
+            return
+        # Check for Modifier with keys that don't support them visibly
+        if keyname == "space":
+            keyname = '{}'.format(event.state & Gdk.ModifierType.SHIFT_MASK and
+                                  keyname.upper() or keyname.lower())
+        # Check for Control (^) or Mod1 (Alt)
+        if event.state & Gdk.ModifierType.CONTROL_MASK:
+            keyname = '^{}'.format(keyname)
+        if event.state & Gdk.ModifierType.MOD1_MASK:
+            keyname = 'Alt+{}'.format(keyname)
+        # Loop through binds until found (Calls for improvements)
         for bind in self.binds:
-            if keyval == bind[1] and state == bind[0]:
-                funk = bind[2]
-                args = bind[3:]
+            if keyname == bind[0]:
+                funk = bind[1]
+                args = bind[2:]
                 funk(*args)
                 return
         print("::Warning: Unrecognized key:", event.string)
