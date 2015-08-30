@@ -401,12 +401,13 @@ class Pim:
             return
         # Check for Modifier with keys that don't support them visibly
         if keyname == "space":
-            keyname = '{}'.format(event.state & Gdk.ModifierType.SHIFT_MASK and
+            keyname = '{}'.format(event.get_state() &
+                                  Gdk.ModifierType.SHIFT_MASK and
                                   keyname.upper() or keyname.lower())
         # Check for Control (^) or Mod1 (Alt)
-        if event.state & Gdk.ModifierType.CONTROL_MASK:
+        if event.get_state() & Gdk.ModifierType.CONTROL_MASK:
             keyname = '^{}'.format(keyname)
-        if event.state & Gdk.ModifierType.MOD1_MASK:
+        if event.get_state() & Gdk.ModifierType.MOD1_MASK:
             keyname = 'Alt+{}'.format(keyname)
         # Loop through binds until found (Calls for improvements)
         for bind in self.binds:
