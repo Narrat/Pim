@@ -191,10 +191,10 @@ class Pim:
             winSize = self.Sizes['wSize']
             wScale = self.Sizes['wSize'][0] / self.Sizes['wSize'][1]
 
-        dir = zWidth | zHeight
-        if pboWidth < winSize[0] and pboHeight < winSize[1] and not dir:
+        stickout = zWidth | zHeight
+        if pboWidth < winSize[0] and pboHeight < winSize[1] and not stickout:
             return 1
-        elif (pboScale < wScale and not dir) or zHeight:
+        elif (pboScale < wScale and not stickout) or zHeight:
             return winSize[1] / pboHeight
         else:
             return winSize[0] / pboWidth
