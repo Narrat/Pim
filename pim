@@ -400,7 +400,8 @@ class Pim:
         elif keyval == Gdk.KEY_Control_L or keyval == Gdk.KEY_Control_R:
             return
         # Check for Modifier with keys that don't support them visibly
-        if keyname == "space":
+        specialkey = ("space", "Left", "Right", "Down", "Up", "greater", "less")
+        if keyname in specialkey:
             keyname = '{}'.format(event.get_state() &
                                   Gdk.ModifierType.SHIFT_MASK and
                                   keyname.upper() or keyname.lower())
