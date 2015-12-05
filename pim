@@ -12,7 +12,7 @@
 
 # Pim
 # Python image viewer with vim-like keybindings
-# v0.7.1
+# v0.8.0
 
 import argparse
 from random import shuffle
