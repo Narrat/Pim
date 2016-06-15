@@ -66,10 +66,12 @@ class Pim:
             ("g", self.scroll, Gtk.ScrollType.START, False),
             ("G", self.scroll, Gtk.ScrollType.END, False),
 
-            ("T", self.zoom_delta, -.25),
-            ("t", self.zoom_delta, +.25),
+            ("minus", self.zoom_delta, -.25),
+            ("plus", self.zoom_delta, +.25),
             ("p", self.move_index, -1),
             ("s", self.toggle_slideshow),
+            ("t", self.set_slideshow_delay, 1),
+            ("T", self.set_slideshow_delay, -1),
             ("X", self.delete, -1),
             ("x", self.delete, 0),
             ("z", self.toggle_zoom_lock),
@@ -140,6 +142,15 @@ class Pim:
         else:
             GLib.source_remove(self.timer_id)
         self.update_info()
+
+    def set_slideshow_delay(self, delta):
+        if self.slideshow_delay == 1 and delta == -1:
+            return
+        else:
+            self.slideshow_delay += delta
+        if self.slideshow:
+            self.toggle_slideshow()
+            self.toggle_slideshow()
 
     def toggle_fullscreen(self):
         self.fullscreen = not self.fullscreen
@@ -241,7 +252,7 @@ class Pim:
     def update_info(self):
         message = "[{0}/{1}] [ {3:3.0f}% ]  {2: <50} {5: <3} {4: <11}".format(
             self.index+1, len(self.paths), self.paths[self.index],
-            self.zoom_percent * 100, '[slideshow]' if self.slideshow else '',
+            self.zoom_percent * 100, '[slideshow ({0}s)]'.format(self.slideshow_delay) if self.slideshow else '',
             '[*]' if self.paths[self.index] in self.marked else '')
         self.win.set_title("pim "+message)
         self.statusbar.push(1, message)
