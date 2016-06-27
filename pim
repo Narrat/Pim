@@ -68,6 +68,7 @@ class Pim:
 
             ("minus", self.zoom_delta, -.25),
             ("plus", self.zoom_delta, +.25),
+            ("n", self.move_index, 1),
             ("p", self.move_index, -1),
             ("s", self.toggle_slideshow),
             ("t", self.set_slideshow_delay, 1),
