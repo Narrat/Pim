@@ -138,7 +138,7 @@ class Pim:
         self.slideshow = not self.slideshow
         if self.slideshow:
             self.timer_id = GLib.timeout_add_seconds(self.slideshow_delay,
-                                                     self.move_index, 1)
+                                                     self.move_index, 1, True)
         else:
             GLib.source_remove(self.timer_id)
         self.update_info()
@@ -275,7 +275,11 @@ class Pim:
         except:
             print("::Warning: Animation object cannot be zoomed")
 
-    def move_index(self, delta):
+    def move_index(self, delta, slide=False):
+        # Manual interaction stops slideshow
+        if self.slideshow and not slide:
+            self.toggle_slideshow()
+
         self.index = (self.index + delta) % len(self.paths)
 
         # reshuffle on wrap-around
