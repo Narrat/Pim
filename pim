@@ -17,6 +17,7 @@
 import argparse
 from random import shuffle
 import mimetypes
+from threading import Thread
 from gi import require_version
 require_version('Gtk', '3.0')
 from gi.repository import GLib, Gtk, Gdk, GdkPixbuf
@@ -34,6 +35,11 @@ class Pim:
         self.shuffle = False
         self.sbar = False
         self.zoom_lock = False
+
+        self.current_image = None
+        self.next_image = None
+        self.next_image_index = -1
+        self.bg_thread = None
 
         self.paths = []
         self.marked = []
@@ -167,7 +173,9 @@ class Pim:
         if not self.zoom_lock:
             self.zoom_percent = self.get_zoom_percent()
 
-        self.update_image()
+        self.rescale_image()
+        # TODO: rescale self.next_image
+        self.show_image()
 
     def toggle_statusbar(self):
         if not self.sbar:
@@ -177,18 +185,16 @@ class Pim:
         self.sbar = not self.sbar
 
     def rotate(self, cwise):
-        try:
-            self.pixbufOriginal = self.pixbufOriginal.rotate_simple((90*cwise))
-
-            if not self.zoom_lock:
-                self.zoom_percent = self.get_zoom_percent()
-            self.update_image()
-        except:
-            print("::Warning: Animation object cannot be rotated")
+        self.current_image.rotate(cwise)
+        if not self.zoom_lock:
+            self.zoom_percent = self.get_zoom_percent()
+            self.rescale_image()
+            # TODO: rescale self.next_image
+        self.show_image()
 
     def get_zoom_percent(self, zWidth=False, zHeight=False):
-        pboWidth = self.pixbufOriginal.get_width()
-        pboHeight = self.pixbufOriginal.get_height()
+        pboWidth = self.current_image.get_orig_width()
+        pboHeight = self.current_image.get_orig_height()
         pboScale = pboWidth / pboHeight
 
         if self.fullscreen:
@@ -206,20 +212,20 @@ class Pim:
         else:
             return winSize[0] / pboWidth
 
-    def update_image(self):
+    def rescale_image(self):
+        pboWidth = self.current_image.get_orig_width()
+        pboHeight = self.current_image.get_orig_height()
+        pbfWidth = int(pboWidth * self.zoom_percent)
+        pbfHeight = int(pboHeight * self.zoom_percent)
+        self.current_image.scale(pbfWidth, pbfHeight)
+
+    def show_image(self):
         ''' Show the final image '''
 
-        pboWidth = self.pixbufOriginal.get_width()
-        pboHeight = self.pixbufOriginal.get_height()
-
         try:
-            pbfWidth = int(pboWidth * self.zoom_percent)
-            pbfHeight = int(pboHeight * self.zoom_percent)
-            pixbufFinal = self.pixbufOriginal.scale_simple(
-                pbfWidth, pbfHeight, GdkPixbuf.InterpType.BILINEAR)
-            self.image.set_from_pixbuf(pixbufFinal)
+            self.image.set_from_pixbuf(self.current_image.get_pixbuf())
         except:
-            self.image.set_from_animation(self.pixbufOriginal)
+            self.image.set_from_animation(self.current_image.get_unscaled_pixbuf())
 
         self.update_info()
 
@@ -263,7 +269,9 @@ class Pim:
             self.zoom_percent = self.zoom_percent + delta
             if self.zoom_percent <= 0:
                 self.zoom_percent = 1/100
-            self.update_image()
+            self.rescale_image()
+            # TODO: rescale self.next_image
+            self.show_image()
         except:
             print("::Warning: Animation object cannot be zoomed")
 
@@ -272,9 +280,27 @@ class Pim:
             if not self.fullscreen:
                 self.Sizes['wSize'] = self.win.get_size()
             self.zoom_percent = percent if percent else self.get_zoom_percent(zWidth, zHeight)
-            self.update_image()
+            self.rescale_image()
+            # TODO: rescale self.next_image
+            self.show_image()
         except:
             print("::Warning: Animation object cannot be zoomed")
+
+    def bg_render_next_image(self, delta=1):
+        self.next_image_index = (self.index + delta) % len(self.paths)
+        def bg_renderer():
+            path = self.paths[self.next_image_index]
+            self.next_image = Image(path)
+            pboWidth = self.next_image.get_orig_width()
+            pboHeight = self.next_image.get_orig_height()
+            pbfWidth = int(pboWidth * self.zoom_percent)
+            pbfHeight = int(pboHeight * self.zoom_percent)
+            self.next_image.scale(pbfWidth, pbfHeight)
+        self.bg_thread = Thread(target=bg_renderer)
+        self.bg_thread.start()
+
+    def bg_wait_for_next_image(self):
+        self.bg_thread.join()
 
     def move_index(self, delta, slide=False):
         # Manual interaction stops slideshow
@@ -289,21 +315,20 @@ class Pim:
 
         path = self.paths[self.index]
         try:
-            if not os.path.exists(path):
-                print("::Error: Couldn't open", path)
-                self.delete()
-                return
+            # TODO: keep previous_image to accelerate going back as well
+            if self.next_image_index == self.index:
+                self.bg_wait_for_next_image()
+                self.current_image = self.next_image
             else:
-                self.pixbufOriginal = GdkPixbuf.PixbufAnimation.new_from_file(path)
-            if self.pixbufOriginal.is_static_image():
-                self.pixbufOriginal = self.pixbufOriginal.get_static_image()
-                if not self.zoom_lock:
+                self.current_image = Image(path)
+                if self.current_image.is_static_image() and not self.zoom_lock:
                     if not self.fullscreen:
                         self.Sizes['wSize'] = self.win.get_size()
                     self.zoom_percent = self.get_zoom_percent()
-            else:
-                self.zoom_percent = 1
-            self.update_image()
+                else:
+                    self.zoom_percent = 1
+                self.rescale_image()
+            self.show_image()
 
             self.scroll(Gtk.ScrollType.START, False)
             self.scroll(Gtk.ScrollType.START, True)
@@ -311,6 +336,8 @@ class Pim:
         except GLib.Error as err:
             print(err)
             self.move_index(1)
+
+        self.bg_render_next_image(1 if delta >= 0 else -1)
 
         return True  # for the slideshow
 
@@ -482,6 +509,54 @@ class Pim:
             self.win.fullscreen()
         self.toggle_statusbar()
         Gtk.main()
+
+
+class Image:
+    """ Represents an image.
+
+    Use it with:
+    img = Image("path.jpg")
+    img.scale(800, 600)
+    gtkimagewidget.set_from_pixbuf(img.get_pixbuf()).
+
+    You MUST scale() the Image before using get_pixbuf().
+    """
+
+    def __init__(self, path):
+        if not os.path.exists(path):
+            raise Exception("::Error: Couldn't open", path)
+        else:
+            self._pixbuf_unscaled = GdkPixbuf.PixbufAnimation.new_from_file(path)
+        self._static_image = self._pixbuf_unscaled.is_static_image()
+        if self._static_image:
+            self._pixbuf_unscaled = self._pixbuf_unscaled.get_static_image()
+        self._pixbuf_scaled = None
+
+    def rotate(self, cwise):
+        try:
+            self._pixbuf_unscaled = self._pixbuf_unscaled.rotate_simple((90*cwise))
+        except:
+            print("::Warning: Animation object cannot be rotated")
+
+    def get_orig_width(self):
+        return self._pixbuf_unscaled.get_width()
+
+    def get_orig_height(self):
+        return self._pixbuf_unscaled.get_height()
+
+    def scale(self, new_width, new_height):
+        self._pixbuf_scaled = self._pixbuf_unscaled.scale_simple(new_width, new_height,
+                GdkPixbuf.InterpType.BILINEAR)
+
+    def get_pixbuf(self):
+        return self._pixbuf_scaled
+
+    def get_unscaled_pixbuf(self):
+        # Intended for animations...
+        return self._pixbuf_unscaled
+
+    def is_static_image(self):
+        return self._static_image
 
 
 if __name__ == '__main__':
