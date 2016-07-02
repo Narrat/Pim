@@ -177,8 +177,8 @@ class Pim:
             self.zoom_percent = self.get_zoom_percent()
 
         self.rescale_image()
-        # TODO: rescale self.next_image
         self.show_image()
+        self.bg_rescale_next_image()
 
     def toggle_statusbar(self):
         if not self.sbar:
@@ -192,7 +192,6 @@ class Pim:
         if not self.zoom_lock:
             self.zoom_percent = self.get_zoom_percent()
             self.rescale_image()
-            # TODO: rescale self.next_image
         self.show_image()
 
     def get_zoom_percent(self, zWidth=False, zHeight=False):
@@ -274,8 +273,8 @@ class Pim:
             if self.zoom_percent <= 0:
                 self.zoom_percent = 1/100
             self.rescale_image()
-            # TODO: rescale self.next_image
             self.show_image()
+            self.bg_rescale_next_image()
         except:
             print("::Warning: Animation object cannot be zoomed")
 
@@ -285,8 +284,8 @@ class Pim:
                 self.Sizes['wSize'] = self.win.get_size()
             self.zoom_percent = percent if percent else self.get_zoom_percent(zWidth, zHeight)
             self.rescale_image()
-            # TODO: rescale self.next_image
             self.show_image()
+            self.bg_rescale_next_image()
         except:
             print("::Warning: Animation object cannot be zoomed")
 
@@ -305,6 +304,21 @@ class Pim:
 
     def bg_wait_for_next_image(self):
         self.bg_thread.join()
+
+    def bg_rescale_next_image(self):
+        # This could be handled more efficiently, e.g. if we'd send some kind of signal to the
+        # renderer thread in case it is still working.
+        self.bg_wait_for_next_image()
+        def bg_rescaler():
+            pboWidth = self.next_image.get_orig_width()
+            pboHeight = self.next_image.get_orig_height()
+            pbfWidth = int(pboWidth * self.zoom_percent)
+            pbfHeight = int(pboHeight * self.zoom_percent)
+            self.next_image.scale(pbfWidth, pbfHeight)
+        self.bg_thread = Thread(target=bg_rescaler)
+        self.bg_thread.start()
+        # We also have to invalidate previous image because of the changed dimensions
+        self.previous_image_index = -1
 
     def move_index(self, delta, slide=False):
         # Manual interaction stops slideshow
