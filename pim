@@ -29,6 +29,8 @@ class Pim:
         self.cur_hide_delay = 2
         self.fullscreen = False
         self.geometry = "800x600"
+        self.rotation_lock = False
+        self.rotation = 0
         self.slideshow = False
         self.slideshow_delay = 5
         self.shuffle = False
@@ -86,12 +88,16 @@ class Pim:
             ("e", self.zoom_to, 0, True, False),
             ("E", self.zoom_to, 0, False, True),
 
-            ("greater", self.rotate, 1),
-            ("less", self.rotate, 3),
+            ("r",  self.rotate, -90),
+            ("R",  self.rotate, 90),
+            ("^r", self.toggle_rotation_lock),
 
             ("space", self.move_index, 1),
             ("SPACE", self.move_index, -1),
             )
+
+    def toggle_rotation_lock(self):
+        self.rotation_lock = not self.rotation_lock
 
     def toggle_zoom_lock(self):
         self.zoom_lock = not self.zoom_lock
@@ -176,9 +182,10 @@ class Pim:
             Gtk.Widget.show(self.statusbar)
         self.sbar = not self.sbar
 
-    def rotate(self, cwise):
+    def rotate(self, delta):
         try:
-            self.pixbufOriginal = self.pixbufOriginal.rotate_simple((90*cwise))
+            self.pixbufOriginal = self.pixbufOriginal.rotate_simple(delta % 360)
+            self.rotation = (self.rotation + delta) % 360
 
             if not self.zoom_lock:
                 self.zoom_percent = self.get_zoom_percent()
@@ -297,6 +304,10 @@ class Pim:
                 self.pixbufOriginal = GdkPixbuf.PixbufAnimation.new_from_file(path)
             if self.pixbufOriginal.is_static_image():
                 self.pixbufOriginal = self.pixbufOriginal.get_static_image()
+                if self.rotation_lock:
+                    self.pixbufOriginal = self.pixbufOriginal.rotate_simple(self.rotation)
+                else:
+                    self.rotation = 0
                 if not self.zoom_lock:
                     if not self.fullscreen:
                         self.Sizes['wSize'] = self.win.get_size()
