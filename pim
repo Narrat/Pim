@@ -4,7 +4,6 @@
 # alterecco, for making [visible](http://drop.dotright.net/visible) (dead),
 # and inspiring me (James Campos) to make this program.
 
-
 # Pim
 # Python image viewer with vim-like keybindings
 # v0.8.0
@@ -17,7 +16,6 @@ require_version('Gtk', '3.0')
 from gi.repository import GLib, Gtk, Gdk, GdkPixbuf
 import os
 import shutil
-
 
 class Pim:
     def __init__(self):
@@ -492,7 +490,6 @@ class Pim:
             self.win.fullscreen()
         self.toggle_statusbar()
         Gtk.main()
-
 
 if __name__ == '__main__':
 
