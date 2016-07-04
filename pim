@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-# ToDo
-# mouse panning / keybinds
-
 # Thanks
 # alterecco, for making [visible](http://drop.dotright.net/visible) (dead),
 # and inspiring me (James Campos) to make this program.
