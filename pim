@@ -29,12 +29,12 @@ class Pim:
         self.cur_hide_delay = 2
         self.fullscreen = False
         self.geometry = '800x600'
-        self.rotation_lock = False
         self.rotation = 0
+        self.rotation_lock = False
+        self.sbar = False
         self.slideshow = False
         self.slideshow_delay = 5
         self.shuffle = False
-        self.sbar = False
         self.zoom_lock = False
 
         self.paths = []
@@ -44,56 +44,54 @@ class Pim:
             # (modifier+key, function, args)
             # supported modifiers: Shift (through uppercase)
             # Ctrl (through ^), Alt (through Alt+)
-            ('q', self.quit),
-            ('Q', self.quit, True),
-            ('f', self.toggle_fullscreen),
-            ('b', self.toggle_statusbar),
 
             # if True, scroll in the horizontal direction.
-            ('h', self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
-            ('j', self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
-            ('k', self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
-            ('l', self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
+            ('Left',  self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
+            ('Down',  self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
+            ('Up',    self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
+            ('Right', self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
 
             ('H', self.scroll, Gtk.ScrollType.PAGE_BACKWARD, True),
             ('J', self.scroll, Gtk.ScrollType.PAGE_FORWARD, False),
             ('K', self.scroll, Gtk.ScrollType.PAGE_BACKWARD, False),
             ('L', self.scroll, Gtk.ScrollType.PAGE_FORWARD, True),
 
-            ('Left', self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
-            ('Down', self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
-            ('Up', self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
-            ('Right', self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
+            ('h', self.scroll, Gtk.ScrollType.STEP_BACKWARD, True),
+            ('j', self.scroll, Gtk.ScrollType.STEP_FORWARD, False),
+            ('k', self.scroll, Gtk.ScrollType.STEP_BACKWARD, False),
+            ('l', self.scroll, Gtk.ScrollType.STEP_FORWARD, True),
 
-            ('g', self.scroll, Gtk.ScrollType.START, False),
             ('G', self.scroll, Gtk.ScrollType.END, False),
+            ('g', self.scroll, Gtk.ScrollType.START, False),
 
+            ('SPACE', self.move_index, -1),
+            ('space', self.move_index, 1),
             ('minus', self.zoom_delta, -.25),
             ('plus', self.zoom_delta, +.25),
-            ('n', self.move_index, 1),
-            ('p', self.move_index, -1),
-            ('s', self.toggle_slideshow),
-            ('t', self.set_slideshow_delay, 1),
-            ('T', self.set_slideshow_delay, -1),
-            ('X', self.delete, -1),
-            ('x', self.delete, 0),
-            ('z', self.toggle_zoom_lock),
-            ('m', self.mark),
+            ('^r', self.toggle_rotation_lock),
 
             ('1', self.zoom_to, 1),
             ('2', self.zoom_to, 2),
             ('3', self.zoom_to, 3),
-            # Fit into window
-            ('w', self.zoom_to, 0),
-            ('e', self.zoom_to, 0, True, False),
             ('E', self.zoom_to, 0, False, True),
+            ('e', self.zoom_to, 0, True, False),
+            ('w', self.zoom_to, 0),
 
-            ('r',  self.rotate, -90),
-            ('R',  self.rotate, 90),
-            ('^r', self.toggle_rotation_lock),
-
-            ('space', self.move_index, 1),
-            ('SPACE', self.move_index, -1),
+            ('b', self.toggle_statusbar),
+            ('f', self.toggle_fullscreen),
+            ('m', self.mark),
+            ('n', self.move_index, 1),
+            ('p', self.move_index, -1),
+            ('Q', self.quit, True),
+            ('q', self.quit),
+            ('R', self.rotate, 90),
+            ('r', self.rotate, -90),
+            ('s', self.toggle_slideshow),
+            ('T', self.set_slideshow_delay, -1),
+            ('t', self.set_slideshow_delay, 1),
+            ('X', self.delete, -1),
+            ('x', self.delete, 0),
+            ('z', self.toggle_zoom_lock),
             )
 
     def toggle_rotation_lock(self):
