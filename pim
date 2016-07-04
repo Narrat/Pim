@@ -419,6 +419,10 @@ class Pim:
                                                      self.cursor_hide)
         self.win.get_window().set_cursor(None)
 
+    def handle_button_press(self, widget, event):
+        if event.type == Gdk.EventType._2BUTTON_PRESS:
+            self.toggle_fullscreen()
+
     def handle_key_press(self, widget, event):
         keyval = event.keyval
         keyname = Gdk.keyval_name(keyval)
@@ -460,9 +464,11 @@ class Pim:
                                                      self.cursor_hide)
 
         self.win = Gtk.Window()
-        self.win.add_events(Gdk.EventMask.KEY_PRESS_MASK |
+        self.win.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
+                            Gdk.EventMask.KEY_PRESS_MASK |
                             Gdk.EventMask.POINTER_MOTION_MASK)
         self.win.connect('destroy', Gtk.main_quit)
+        self.win.connect("button_press_event", self.handle_button_press)
         self.win.connect("key_press_event", self.handle_key_press)
         self.win.connect("motion-notify-event", self.handle_cursor_move)
         self.win.set_icon_name("image-x-generic")
