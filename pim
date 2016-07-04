@@ -94,11 +94,8 @@ class Pim:
             ('z', self.toggle_zoom_lock),
             )
 
-    def toggle_rotation_lock(self):
-        self.rotation_lock = not self.rotation_lock
-
-    def toggle_zoom_lock(self):
-        self.zoom_lock = not self.zoom_lock
+    def cursor_hide(self):
+        self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR))
 
     def delete(self, delta=0):
         current = self.paths[self.index]
@@ -123,74 +120,6 @@ class Pim:
         else:
             self.move_index(delta)
 
-    def quit(self, remember_position=False):
-        if remember_position and len(self.paths):
-            try:
-                f = open('pim-position', 'w')
-                f.writelines(self.paths[self.index])
-                f.close()
-            except IOError as e:
-                print(e)
-        for pos in self.marked:
-            print(pos)
-
-        Gtk.main_quit()
-
-    def scroll(self, scrolltype, horizontal):
-        self.scrolled_win.emit('scroll-child', scrolltype, horizontal)
-
-    def toggle_slideshow(self):
-        self.slideshow = not self.slideshow
-        if self.slideshow:
-            self.timer_id = GLib.timeout_add_seconds(self.slideshow_delay,
-                                                     self.move_index, 1, True)
-        else:
-            GLib.source_remove(self.timer_id)
-        self.update_info()
-
-    def set_slideshow_delay(self, delta):
-        if self.slideshow_delay == 1 and delta == -1:
-            return
-        else:
-            self.slideshow_delay += delta
-        if self.slideshow:
-            self.toggle_slideshow()
-            self.toggle_slideshow()
-
-    def toggle_fullscreen(self):
-        self.fullscreen = not self.fullscreen
-
-        if self.fullscreen:
-            self.win.fullscreen()
-            # Save previous window size. Possible since get_size gets old value
-            # And this is also the cause for some problems
-            # (zoomfactor for fullscreen on non fullscreen window)
-            self.Sizes['wSize'] = self.win.get_size()
-        else:
-            self.win.unfullscreen()
-        if not self.zoom_lock:
-            self.zoom_percent = self.get_zoom_percent()
-
-        self.update_image()
-
-    def toggle_statusbar(self):
-        if not self.sbar:
-            Gtk.Widget.hide(self.statusbar)
-        else:
-            Gtk.Widget.show(self.statusbar)
-        self.sbar = not self.sbar
-
-    def rotate(self, delta):
-        try:
-            self.pixbufOriginal = self.pixbufOriginal.rotate_simple(delta % 360)
-            self.rotation = (self.rotation + delta) % 360
-
-            if not self.zoom_lock:
-                self.zoom_percent = self.get_zoom_percent()
-            self.update_image()
-        except:
-            print('::Warning: Animation object cannot be rotated')
-
     def get_zoom_percent(self, zWidth=False, zHeight=False):
         pboWidth = self.pixbufOriginal.get_width()
         pboHeight = self.pixbufOriginal.get_height()
@@ -211,75 +140,50 @@ class Pim:
         else:
             return winSize[0] / pboWidth
 
-    def update_image(self):
-        """ Show the final image """
+    def handle_button_press(self, widget, event):
+        if event.type == Gdk.EventType._2BUTTON_PRESS:
+            self.toggle_fullscreen()
 
-        pboWidth = self.pixbufOriginal.get_width()
-        pboHeight = self.pixbufOriginal.get_height()
+    def handle_cursor_move(self, *unused):
+        self.cur_timer_id = GLib.timeout_add_seconds(self.cur_hide_delay,
+                                                     self.cursor_hide)
+        self.win.get_window().set_cursor(None)
 
-        try:
-            pbfWidth = int(pboWidth * self.zoom_percent)
-            pbfHeight = int(pboHeight * self.zoom_percent)
-            pixbufFinal = self.pixbufOriginal.scale_simple(
-                pbfWidth, pbfHeight, GdkPixbuf.InterpType.BILINEAR)
-            self.image.set_from_pixbuf(pixbufFinal)
-        except:
-            self.image.set_from_animation(self.pixbufOriginal)
+    def handle_key_press(self, widget, event):
+        keyval = event.keyval
+        keyname = Gdk.keyval_name(keyval)
+        if keyval == Gdk.KEY_Shift_L or keyval == Gdk.KEY_Shift_R:
+            return
+        elif keyval == Gdk.KEY_Alt_L or keyval == Gdk.KEY_Alt_R:
+            return
+        elif keyval == Gdk.KEY_Control_L or keyval == Gdk.KEY_Control_R:
+            return
+        # Check for Modifier with keys that don't support them visibly
+        specialkey = ('space', 'Left', 'Right', 'Down', 'Up', 'greater', 'less', 'plus', 'minus')
+        if keyname in specialkey:
+            keyname = '{}'.format(event.get_state() &
+                                  Gdk.ModifierType.SHIFT_MASK and
+                                  keyname.upper() or keyname.lower())
+        # Check for Control (^) or Mod1 (Alt)
+        if event.get_state() & Gdk.ModifierType.CONTROL_MASK:
+            keyname = '^{}'.format(keyname)
+        if event.get_state() & Gdk.ModifierType.MOD1_MASK:
+            keyname = 'Alt+{}'.format(keyname)
+        # Loop through binds until found (Calls for improvements)
+        for bind in self.binds:
+            if keyname == bind[0]:
+                funk = bind[1]
+                args = bind[2:]
+                funk(*args)
+                return
+        print('::Warning: Unrecognized key:', event.string)
 
-        self.update_info()
-
-    def parse_geometry(self):
-        # Not nice, but adding type=int to argparse won't help because of the x
-        # ToDo: Look for a better solution
-        if self.geometry.find('x') >= 0:
-            self.geometry = self.geometry.split('x')
-            for ele in range(0, len(self.geometry)):
-                if len(self.geometry[ele]) > 0:
-                    self.geometry[ele] = int(self.geometry[ele])
-                else:
-                    print('::Warning: Missing geometry parameter.'
-                          ' Replacing with default')
-                    self.geometry[ele] = 200*(4-ele)
+    def mark(self):
+        if self.paths[self.index] in self.marked:
+            self.marked.remove(self.paths[self.index])
         else:
-            print('::Warning: The geometry should be like that: 800x600'
-                  '\n::Falling back to default')
-            self.geometry = '800x600'
-            self.parse_geometry()
-
-    def set_default_window_size(self):
-        self.parse_geometry()
-        winWidth = self.geometry[0] if self.Sizes['sWidth'] >= 800 else self.Sizes['sWidth']
-        winHeight = self.geometry[1] if self.Sizes['sHeight'] >= 600 else self.Sizes['sHeight']
-
-        self.win.resize(winWidth, winHeight)
-        if self.fullscreen:
-            self.win.fullscreen()
-
-    def update_info(self):
-        message = '[{0}/{1}] [ {3:3.0f}% ]  {2: <50} {5: <3} {4: <11}'.format(
-            self.index+1, len(self.paths), self.paths[self.index],
-            self.zoom_percent * 100, '[slideshow ({0}s)]'.format(self.slideshow_delay) if self.slideshow else '',
-            '[*]' if self.paths[self.index] in self.marked else '')
-        self.win.set_title('pim '+message)
-        self.statusbar.push(1, message)
-
-    def zoom_delta(self, delta):
-        try:
-            self.zoom_percent = self.zoom_percent + delta
-            if self.zoom_percent <= 0:
-                self.zoom_percent = 1/100
-            self.update_image()
-        except:
-            print('::Warning: Animation object cannot be zoomed')
-
-    def zoom_to(self, percent, zWidth=False, zHeight=False):
-        try:
-            if not self.fullscreen:
-                self.Sizes['wSize'] = self.win.get_size()
-            self.zoom_percent = percent if percent else self.get_zoom_percent(zWidth, zHeight)
-            self.update_image()
-        except:
-            print('::Warning: Animation object cannot be zoomed')
+            self.marked.append(self.paths[self.index])
+        self.update_info()
 
     def move_index(self, delta, slide=False):
         # Manual interaction stops slideshow
@@ -352,6 +256,24 @@ class Pim:
         if not self.populate(args):
             parser.error('no loadable images detected')
 
+    def parse_geometry(self):
+        # Not nice, but adding type=int to argparse won't help because of the x
+        # ToDo: Look for a better solution
+        if self.geometry.find('x') >= 0:
+            self.geometry = self.geometry.split('x')
+            for ele in range(0, len(self.geometry)):
+                if len(self.geometry[ele]) > 0:
+                    self.geometry[ele] = int(self.geometry[ele])
+                else:
+                    print('::Warning: Missing geometry parameter.'
+                          ' Replacing with default')
+                    self.geometry[ele] = 200*(4-ele)
+        else:
+            print('::Warning: The geometry should be like that: 800x600'
+                  '\n::Falling back to default')
+            self.geometry = '800x600'
+            self.parse_geometry()
+
     def populate(self, args):
         """ Generate a list of paths from the given arguments """
 
@@ -402,53 +324,131 @@ class Pim:
 
         return len(self.paths)
 
-    def mark(self):
-        if self.paths[self.index] in self.marked:
-            self.marked.remove(self.paths[self.index])
+    def quit(self, remember_position=False):
+        if remember_position and len(self.paths):
+            try:
+                f = open('pim-position', 'w')
+                f.writelines(self.paths[self.index])
+                f.close()
+            except IOError as e:
+                print(e)
+        for pos in self.marked:
+            print(pos)
+
+        Gtk.main_quit()
+
+    def rotate(self, delta):
+        try:
+            self.pixbufOriginal = self.pixbufOriginal.rotate_simple(delta % 360)
+            self.rotation = (self.rotation + delta) % 360
+
+            if not self.zoom_lock:
+                self.zoom_percent = self.get_zoom_percent()
+            self.update_image()
+        except:
+            print('::Warning: Animation object cannot be rotated')
+
+    def scroll(self, scrolltype, horizontal):
+        self.scrolled_win.emit('scroll-child', scrolltype, horizontal)
+
+    def set_default_window_size(self):
+        self.parse_geometry()
+        winWidth = self.geometry[0] if self.Sizes['sWidth'] >= 800 else self.Sizes['sWidth']
+        winHeight = self.geometry[1] if self.Sizes['sHeight'] >= 600 else self.Sizes['sHeight']
+
+        self.win.resize(winWidth, winHeight)
+        if self.fullscreen:
+            self.win.fullscreen()
+
+    def set_slideshow_delay(self, delta):
+        if self.slideshow_delay == 1 and delta == -1:
+            return
         else:
-            self.marked.append(self.paths[self.index])
+            self.slideshow_delay += delta
+        if self.slideshow:
+            self.toggle_slideshow()
+            self.toggle_slideshow()
+
+    def toggle_fullscreen(self):
+        self.fullscreen = not self.fullscreen
+
+        if self.fullscreen:
+            self.win.fullscreen()
+            # Save previous window size. Possible since get_size gets old value
+            # And this is also the cause for some problems
+            # (zoomfactor for fullscreen on non fullscreen window)
+            self.Sizes['wSize'] = self.win.get_size()
+        else:
+            self.win.unfullscreen()
+        if not self.zoom_lock:
+            self.zoom_percent = self.get_zoom_percent()
+
+        self.update_image()
+
+    def toggle_rotation_lock(self):
+        self.rotation_lock = not self.rotation_lock
+
+    def toggle_slideshow(self):
+        self.slideshow = not self.slideshow
+        if self.slideshow:
+            self.timer_id = GLib.timeout_add_seconds(self.slideshow_delay,
+                                                     self.move_index, 1, True)
+        else:
+            GLib.source_remove(self.timer_id)
         self.update_info()
 
-    def cursor_hide(self):
-        self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR))
+    def toggle_statusbar(self):
+        if not self.sbar:
+            Gtk.Widget.hide(self.statusbar)
+        else:
+            Gtk.Widget.show(self.statusbar)
+        self.sbar = not self.sbar
 
-    def handle_cursor_move(self, *unused):
-        self.cur_timer_id = GLib.timeout_add_seconds(self.cur_hide_delay,
-                                                     self.cursor_hide)
-        self.win.get_window().set_cursor(None)
+    def toggle_zoom_lock(self):
+        self.zoom_lock = not self.zoom_lock
 
-    def handle_button_press(self, widget, event):
-        if event.type == Gdk.EventType._2BUTTON_PRESS:
-            self.toggle_fullscreen()
+    def update_image(self):
+        """ Show the final image """
 
-    def handle_key_press(self, widget, event):
-        keyval = event.keyval
-        keyname = Gdk.keyval_name(keyval)
-        if keyval == Gdk.KEY_Shift_L or keyval == Gdk.KEY_Shift_R:
-            return
-        elif keyval == Gdk.KEY_Alt_L or keyval == Gdk.KEY_Alt_R:
-            return
-        elif keyval == Gdk.KEY_Control_L or keyval == Gdk.KEY_Control_R:
-            return
-        # Check for Modifier with keys that don't support them visibly
-        specialkey = ('space', 'Left', 'Right', 'Down', 'Up', 'greater', 'less', 'plus', 'minus')
-        if keyname in specialkey:
-            keyname = '{}'.format(event.get_state() &
-                                  Gdk.ModifierType.SHIFT_MASK and
-                                  keyname.upper() or keyname.lower())
-        # Check for Control (^) or Mod1 (Alt)
-        if event.get_state() & Gdk.ModifierType.CONTROL_MASK:
-            keyname = '^{}'.format(keyname)
-        if event.get_state() & Gdk.ModifierType.MOD1_MASK:
-            keyname = 'Alt+{}'.format(keyname)
-        # Loop through binds until found (Calls for improvements)
-        for bind in self.binds:
-            if keyname == bind[0]:
-                funk = bind[1]
-                args = bind[2:]
-                funk(*args)
-                return
-        print('::Warning: Unrecognized key:', event.string)
+        pboWidth = self.pixbufOriginal.get_width()
+        pboHeight = self.pixbufOriginal.get_height()
+
+        try:
+            pbfWidth = int(pboWidth * self.zoom_percent)
+            pbfHeight = int(pboHeight * self.zoom_percent)
+            pixbufFinal = self.pixbufOriginal.scale_simple(
+                pbfWidth, pbfHeight, GdkPixbuf.InterpType.BILINEAR)
+            self.image.set_from_pixbuf(pixbufFinal)
+        except:
+            self.image.set_from_animation(self.pixbufOriginal)
+
+        self.update_info()
+
+    def update_info(self):
+        message = '[{0}/{1}] [ {3:3.0f}% ]  {2: <50} {5: <3} {4: <11}'.format(
+            self.index+1, len(self.paths), self.paths[self.index],
+            self.zoom_percent * 100, '[slideshow ({0}s)]'.format(self.slideshow_delay) if self.slideshow else '',
+            '[*]' if self.paths[self.index] in self.marked else '')
+        self.win.set_title('pim '+message)
+        self.statusbar.push(1, message)
+
+    def zoom_delta(self, delta):
+        try:
+            self.zoom_percent = self.zoom_percent + delta
+            if self.zoom_percent <= 0:
+                self.zoom_percent = 1/100
+            self.update_image()
+        except:
+            print('::Warning: Animation object cannot be zoomed')
+
+    def zoom_to(self, percent, zWidth=False, zHeight=False):
+        try:
+            if not self.fullscreen:
+                self.Sizes['wSize'] = self.win.get_size()
+            self.zoom_percent = percent if percent else self.get_zoom_percent(zWidth, zHeight)
+            self.update_image()
+        except:
+            print('::Warning: Animation object cannot be zoomed')
 
     def main(self):
         self.parse_args()
