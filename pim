@@ -87,6 +87,13 @@ class Pim:
             ('z', self.toggle_zoom_lock),
             )
 
+        self.mouse_binds = (
+            # clicks, button, function, args
+            (1, 8, self.move_index, -1),
+            (1, 9, self.move_index, 1),
+            (2, 1, self.toggle_fullscreen),
+            )
+
     def cursor_hide(self):
         self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR))
 
@@ -134,12 +141,16 @@ class Pim:
             return winSize[0] / pboWidth
 
     def handle_button_press(self, widget, event):
-        if event.button == 9:
-            self.move_index(1)
-        elif event.button == 8:
-            self.move_index(-1)
-        elif event.type == Gdk.EventType._2BUTTON_PRESS:
-            self.toggle_fullscreen()
+        clicks = {
+            Gdk.EventType.BUTTON_PRESS: 1,
+            Gdk.EventType._2BUTTON_PRESS: 2,
+            Gdk.EventType._3BUTTON_PRESS: 3
+        }[event.type]
+
+        for bind in self.mouse_binds:
+            if bind[0] == clicks and bind[1] == event.button:
+                bind[2](*bind[3:])
+                break
 
         return True # XXX without this, single clicks fire twice
 
