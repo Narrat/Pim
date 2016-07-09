@@ -247,8 +247,10 @@ def main():
     parse_args()
 
     win = g.win = Gtk.Window()
-    win.set_icon_name('image-x-generic')
     win.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
+    win.set_default_size(800, 600)
+    win.set_icon_name('image-x-generic')
+
     win.connect('button-press-event', handle_button_press)
     win.connect('button-release-event', handle_button_release)
     win.connect('delete-event', Gtk.main_quit)
