@@ -10,9 +10,7 @@
 # remember position
 # be nice about config file
 
-# initial window geometry?
 # mark?
-# set_icon_name - window icon?
 # xdg trash, undelete, status text
 # preload images
 
@@ -105,7 +103,14 @@ def get_paths():
     for format in GdkPixbuf.Pixbuf.get_formats():
         extensions.extend(format.get_extensions())
 
-    dirname = os.path.abspath(g.path) + '/'
+    path = os.path.abspath(g.path)
+
+    if os.path.isdir(path):
+        dirname = path + '/'
+    else:
+        dirname = os.path.dirname(path) + '/'
+        isfile = True
+
     paths = [path for path in os.listdir(dirname) if
         os.path.splitext(path)[1][1:] in extensions]
 
@@ -115,6 +120,9 @@ def get_paths():
         paths.sort()
 
     g.paths = [dirname + path for path in paths]
+
+    if isfile:
+        g.index = g.paths.index(path)
 
 def update_info():
     path = g.paths[g.index]
