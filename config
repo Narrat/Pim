@@ -1,0 +1,45 @@
+[Buttons]
+1: drag
+8: prev
+9: next
+
+[Keys]
+S-space: prev
+space: next
+
+H: pageLeft
+J: pageDown
+K: pageUp
+L: pageRight
+
+h: left
+j: down
+k: up
+l: right
+
+W: pageUp
+A: pageLeft
+S: pageDown
+D: pageRight
+
+w: up
+a: left
+s: down
+d: right
+
+R: rotateL
+r: rotateR
+t: slower
+T: faster
+
+b: status
+e: slideshow
+f: fullscreen
+q: quit
+#x: delete
+z: zoom
+
+[Options]
+format: {i}/{l} {path} {slide}
+#fullscreen: true
+slideshow delay: 5
