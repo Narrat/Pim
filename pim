@@ -204,6 +204,8 @@ def move_index(delta):
     if g.pixbuf.is_static_image():
         g.animated = False
         g.pixbuf = g.pixbuf.get_static_image()
+    else:
+        g.animated = True
 
     update_info()
     render()
