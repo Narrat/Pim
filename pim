@@ -56,16 +56,15 @@ def drag():
 def delete():
     path = g.paths.pop(g.index)
 
-    if g.index == len(g.paths):
-        g.index -= 1
-
     if not os.path.isdir('/tmp/pim'):
         os.mkdir('/tmp/pim')
 
     shutil.move(path, '/tmp/pim/' + os.path.basename(path))
     print('trashed: ' + path)
 
-    render()
+    if g.index == len(g.paths):
+        g.index -= 1
+    move_index(0)
 
 def change_delay(delta):
     if g.slide_delay == 1 and delta == -1:
