@@ -1,0 +1,320 @@
+#!/usr/bin/env python3
+
+# Thanks to alterecco, for inspiring the creation of this program.
+
+# TODO
+# zoom + lock
+# rotation lock
+# ctrl, alt key
+# file paths
+# remember position
+
+# initial window geometry?
+# mark?
+# set_icon_name - window icon?
+# xdg trash, undelete, status text
+# preload images
+
+import argparse
+import configparser
+import random
+import shutil
+import os
+
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
+
+g = argparse.Namespace(
+    animated = True,
+    drag = False,
+    format = '{path}',
+    fullscreen = False,
+    hide_delay = 1,
+    index = 0,
+    rotation = 0,
+    shuffle = False,
+    slideshow = False,
+    slide_delay = 5,
+    status = True,
+    zoom = False
+    )
+
+BUTTONS = {
+    Gdk.EventType.BUTTON_PRESS: 1,
+    Gdk.EventType._2BUTTON_PRESS: 2,
+    Gdk.EventType._3BUTTON_PRESS: 3
+    }
+
+HOME = os.getenv('HOME')
+XDG_CONFIG_HOME = os.getenv('XDG_CONFIG_HOME') or os.path.join(HOME, '.config')
+
+def drag():
+    g.drag = True
+
+def delete():
+    path = g.paths.pop(g.index)
+
+    if g.index == len(g.paths):
+        g.index -= 1
+
+    if not os.path.isdir('/tmp/pim'):
+        os.mkdir('/tmp/pim')
+
+    shutil.move(path, '/tmp/pim/' + os.path.basename(path))
+    print('trashed: ' + path)
+
+    render()
+
+def change_delay(delta):
+    if g.slide_delay == 1 and delta == -1:
+        return
+
+    g.slide_delay += delta
+    toggle_slideshow()
+    toggle_slideshow()
+
+def toggle_fullscreen():
+    g.fullscreen = not g.fullscreen
+
+    if g.fullscreen:
+        g.win.fullscreen()
+    else:
+        g.win.unfullscreen()
+
+def toggle_slideshow():
+    g.slideshow = not g.slideshow
+    
+    if g.slideshow:
+        g.slide_id = GLib.timeout_add_seconds(g.slide_delay, move_index, 1)
+    else:
+        GLib.source_remove(g.slide_id)
+
+    update_info()
+
+def toggle_status():
+    g.status = not g.status
+    
+    if g.status:
+        Gtk.Widget.show(g.label)
+    else:
+        Gtk.Widget.hide(g.label)
+
+def get_paths():
+    extensions = []
+    for format in GdkPixbuf.Pixbuf.get_formats():
+        extensions.extend(format.get_extensions())
+
+    dirname = os.path.abspath(g.path) + '/'
+    paths = [path for path in os.listdir(dirname) if
+        os.path.splitext(path)[1][1:] in extensions]
+        
+    if g.shuffle:
+        random.shuffle(paths)
+    else:
+        paths.sort()
+
+    g.paths = [dirname + path for path in paths]
+
+def update_info():
+    path = g.paths[g.index]
+    g.label.set_text(g.format.format(
+        i = g.index+1,
+        l = len(g.paths),
+        path = path.replace(HOME, '~'),
+        slide = '%is' % g.slide_delay if g.slideshow else '')
+        )
+
+def render():
+    if g.animated:
+        return g.image.set_from_animation(g.pixbuf)
+        
+    pWidth = g.pixbuf.get_width()
+    pHeight = g.pixbuf.get_height()
+
+    if g.zoom:
+        scale = g.sWidth / pWidth
+    else:
+        scale = g.sHeight / pHeight
+    
+    g.scale = scale
+    scaled = g.pixbuf.scale_simple(pWidth * scale, pHeight * scale,
+        GdkPixbuf.InterpType.BILINEAR)
+
+    g.image.set_from_pixbuf(scaled)
+
+def handle_button_press(win, event):
+    clicks = BUTTONS[event.type]
+    button = str(event.button)
+    name = g.Buttons.get(button)
+    
+    if clicks == 1 and name:
+        action = Actions[name]
+        action[0](*action[1:])
+    elif clicks == 2 and button == '1':
+        toggle_fullscreen()
+
+    return True # XXX single clicks fire twice without this
+
+def handle_button_release(win, event):
+    button = str(event.button)
+    name = g.Buttons.get(button)
+
+    if name == 'drag':
+        g.drag = False
+
+    return True
+
+def handle_key(win, event):
+    key = Gdk.keyval_name(event.keyval)
+
+    if key == 'space' and event.state & Gdk.ModifierType.SHIFT_MASK:
+        key = 'S-space'
+
+    name = g.Keys.get(key)
+
+    if name:
+        action = Actions[name]
+        action[0](*action[1:])
+        
+def handle_motion(win, event):
+    win.get_window().set_cursor(None)
+    if g.cursor_id:
+        GLib.source_remove(g.cursor_id)
+    g.cursor_id = GLib.timeout_add_seconds(g.hide_delay, cursor_hide)
+
+    if (g.drag):
+        scale = g.vadj.props.upper / g.vadj.props.page_size
+        g.vadj.set_value(event.y * scale)
+
+def cursor_hide():
+    g.win.get_window().set_cursor(g.cursor)
+    g.cursor_id = None
+
+def move_index(delta):
+    g.index = (g.index + delta) % len(g.paths)
+
+    if not g.index and delta > 1:
+        toggle_status()
+        if g.shuffle:
+            random.shuffle(g.paths)
+
+    path = g.paths[g.index]
+    g.pixbuf = GdkPixbuf.PixbufAnimation.new_from_file(path)
+    if g.pixbuf.is_static_image():
+        g.animated = False
+        g.pixbuf = g.pixbuf.get_static_image()
+
+    update_info()
+    render()
+
+    return True # for the slideshow
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    #parser.set_defaults(**vars(g))
+    parser.add_argument('--fs', action='store_true', default=g.fullscreen,
+         dest='fullscreen')
+    parser.add_argument('--shuffle', action='store_true', default=g.shuffle)
+    parser.add_argument('--status', action='store_true', default=g.status)
+    parser.add_argument('path')
+
+    parser.parse_args(namespace=g)
+
+def parse_config():
+    config = configparser.ConfigParser()
+    config.optionxform = lambda option: option # don't lowercase keys
+    config.read(XDG_CONFIG_HOME + '/pim')
+
+    g.Buttons = config._sections['Buttons']
+    g.Keys = config._sections['Keys']
+
+    opt = config['Options']
+    g.format = opt.get('format', g.format)
+    g.fullscreen = opt.getboolean('fullscreen', g.fullscreen)
+    g.slide_delay = opt.getint('slideshow delay', g.slide_delay)
+
+def main():
+    parse_config()
+    parse_args()
+
+    win = g.win = Gtk.Window()
+    win.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
+    win.connect('button-press-event', handle_button_press)
+    win.connect('button-release-event', handle_button_release)
+    win.connect('delete-event', Gtk.main_quit)
+    win.connect('key-press-event', handle_key)
+    win.connect('motion-notify-event', handle_motion)
+
+    g.image = Gtk.Image()
+    g.scroll = Gtk.ScrolledWindow()
+    g.scroll.add(g.image)
+    g.vadj = g.scroll.get_vadjustment()
+
+    label = g.label = Gtk.Label()
+    label.props.halign = Gtk.Align.START
+    label.props.valign = Gtk.Align.END
+    # XXX deprecated, use Gtk.StyleProvider
+    label.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(.9,.9,.9,1))
+
+    overlay = Gtk.Overlay()
+    overlay.add(g.scroll)
+    overlay.add_overlay(label)
+    win.add(overlay)
+
+    screen = Gdk.Screen()
+    g.sWidth = screen.width()
+    g.sHeight = screen.height()
+
+    g.cursor = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), 'none')
+    g.cursor_id = GLib.timeout_add_seconds(1, cursor_hide)
+
+    if g.fullscreen:
+        win.fullscreen()
+
+    get_paths()
+    move_index(0)
+    win.show_all()
+    Gtk.main()
+
+def rotate(delta):
+    g.rotation = (g.rotation + delta) % 360
+    g.pixbuf = g.pixbuf.rotate_simple(delta % 360)
+    render()
+
+def zoom():
+    g.zoom = not g.zoom
+    render()
+
+def scroll(scroll, horizontal):
+    # XXX why doesn't this work. wtf is a virtual method.
+    #g.scroll.do_scroll_child(scroll, horizontal)
+    g.scroll.emit('scroll-child', scroll,  horizontal)
+
+Actions = {
+    'pageLeft':  (scroll, Gtk.ScrollType.PAGE_BACKWARD, True),
+    'pageDown':  (scroll, Gtk.ScrollType.PAGE_FORWARD,  False),
+    'pageUp':    (scroll, Gtk.ScrollType.PAGE_BACKWARD, False),
+    'pageRight': (scroll, Gtk.ScrollType.PAGE_FORWARD,  True),
+    'left':  (scroll, Gtk.ScrollType.STEP_BACKWARD, True),
+    'down':  (scroll, Gtk.ScrollType.STEP_FORWARD,  False),
+    'up':    (scroll, Gtk.ScrollType.STEP_BACKWARD, False),
+    'right': (scroll, Gtk.ScrollType.STEP_FORWARD,  True),
+
+    'delete': (delete,),
+    'drag': (drag,),
+    'fullscreen': (toggle_fullscreen,),
+    'next': (move_index, 1),
+    'prev': (move_index, -1),
+    'quit': (Gtk.main_quit,),
+    'rotateR': (rotate, -90),
+    'rotateL': (rotate, 90),
+    'slideshow': (toggle_slideshow,),
+    'slower': (change_delay, 1),
+    'faster': (change_delay, -1),
+    'status': (toggle_status,),
+    'zoom': (zoom,)
+}
+
+if __name__ == '__main__':
+    main()
