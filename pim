@@ -8,6 +8,7 @@
 # ctrl, alt key
 # file paths
 # remember position
+# be nice about config file
 
 # initial window geometry?
 # mark?
@@ -246,6 +247,7 @@ def main():
     parse_args()
 
     win = g.win = Gtk.Window()
+    win.set_icon_name('image-x-generic')
     win.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
     win.connect('button-press-event', handle_button_press)
     win.connect('button-release-event', handle_button_release)
