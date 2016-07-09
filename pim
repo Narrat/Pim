@@ -108,7 +108,7 @@ def get_paths():
     dirname = os.path.abspath(g.path) + '/'
     paths = [path for path in os.listdir(dirname) if
         os.path.splitext(path)[1][1:] in extensions]
-        
+
     if g.shuffle:
         random.shuffle(paths)
     else:
@@ -213,6 +213,7 @@ def move_index(delta):
 def parse_args():
     parser = argparse.ArgumentParser()
     #parser.set_defaults(**vars(g))
+
     parser.add_argument('--fs', action='store_true', default=g.fullscreen,
          dest='fullscreen')
     parser.add_argument('--shuffle', action='store_true', default=g.shuffle)
@@ -220,6 +221,10 @@ def parse_args():
     parser.add_argument('path')
 
     parser.parse_args(namespace=g)
+    get_paths()
+
+    if not len(g.paths):
+        parser.error('no loadable images found')
 
 def parse_config():
     config = configparser.ConfigParser()
@@ -272,7 +277,6 @@ def main():
     if g.fullscreen:
         win.fullscreen()
 
-    get_paths()
     move_index(0)
     win.show_all()
     Gtk.main()
