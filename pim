@@ -5,8 +5,6 @@
 # TODO
 # zoom + lock
 # rotation lock
-# ctrl, alt key
-# file paths
 # remember position
 # be nice about config file
 
@@ -174,14 +172,22 @@ def handle_button_release(win, event):
 def handle_key(win, event):
     key = Gdk.keyval_name(event.keyval)
 
-    if key == 'space' and event.state & Gdk.ModifierType.SHIFT_MASK:
-        key = 'S-space'
+    # XXX only support one modifier key, so we don't have to support
+    # modifiers in arbitrary order
+    if event.state & Gdk.ModifierType.MOD1_MASK:
+        key = 'A-' + key
+    elif event.state & Gdk.ModifierType.CONTROL_MASK:
+        key = 'C-' + key
+    elif event.state & Gdk.ModifierType.SHIFT_MASK and len(key) > 1:
+        key = 'S-' + key
 
     name = g.Keys.get(key)
 
     if name:
         action = Actions[name]
         action[0](*action[1:])
+    else:
+        print('no key binding for:', key)
         
 def handle_motion(win, event):
     win.get_window().set_cursor(None)
