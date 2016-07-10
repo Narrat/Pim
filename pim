@@ -354,6 +354,8 @@ Actions = {
     'down':  (scroll, Gtk.ScrollType.STEP_FORWARD,  False),
     'up':    (scroll, Gtk.ScrollType.STEP_BACKWARD, False),
     'right': (scroll, Gtk.ScrollType.STEP_FORWARD,  True),
+    'scrollEnd':   (scroll, Gtk.ScrollType.END,   False),
+    'scrollStart': (scroll, Gtk.ScrollType.START, False),
 
     'delete': (delete,),
     'drag': (drag,),

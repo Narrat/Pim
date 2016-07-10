@@ -27,6 +27,9 @@ a: left
 s: down
 d: right
 
+G: scrollEnd
+g: scrollStart
+
 R: rotateL
 r: rotateR
 t: slower
