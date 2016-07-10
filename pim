@@ -30,7 +30,6 @@ g = argparse.Namespace(
     format = '{path}',
     fullscreen = False,
     hide_delay = 1,
-    index = 0,
     rotation = 0,
     shuffle = False,
     slideshow = False,
@@ -104,13 +103,8 @@ def get_paths():
         extensions.extend(format.get_extensions())
 
     path = os.path.abspath(g.path)
-
-    if os.path.isdir(path):
-        dirname = path + '/'
-        isfile = False
-    else:
-        dirname = os.path.dirname(path) + '/'
-        isfile = True
+    isfile = os.path.isfile(path)
+    dirname = isfile and os.path.dirname(path) or path
 
     paths = [path for path in os.listdir(dirname) if
         os.path.splitext(path)[1][1:] in extensions]
@@ -120,10 +114,8 @@ def get_paths():
     else:
         paths.sort()
 
-    g.paths = [dirname + path for path in paths]
-
-    if isfile:
-        g.index = g.paths.index(path)
+    g.paths = [dirname + '/' + path for path in paths]
+    g.index = isfile and g.paths.index(path) or 0
 
 def update_info():
     path = g.paths[g.index]
