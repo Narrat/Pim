@@ -67,7 +67,7 @@ def delete():
         'DeletionDate={}'
         ).format(path, time.strftime('%Y-%m-%dT%H:%M:%S'))
 
-    f = open(TRASH + '/info/' + name, 'w')
+    f = open(TRASH + '/info/' + name + '.trashinfo', 'w')
     f.write(info)
     f.close()
     shutil.move(path, TRASH + '/files/' + name)
