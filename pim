@@ -16,6 +16,8 @@ require_version('Gtk', '3.0')
 from gi.repository import GLib, Gtk, Gdk, GdkPixbuf
 import os
 import shutil
+import time
+import uuid
 
 # dict like, easy to use class, to avoid the hassle with global vars
 g = argparse.Namespace(
@@ -36,6 +38,10 @@ g = argparse.Namespace(
     marked=[]
 )
 
+HOME = os.getenv('HOME')
+XDG_DATA_HOME   = os.getenv('XDG_DATA_HOME')   or HOME + '/.local/share'
+TRASH = XDG_DATA_HOME + '/Trash'
+
 
 def cursor_hide():
     g.win.get_window().set_cursor(
@@ -43,26 +49,33 @@ def cursor_hide():
 
 
 def delete(delta=0):
-    current = g.paths[g.index]
-    g.paths.remove(current)
-    if current in g.marked:
-        g.marked.remove(current)
-    if os.path.exists(current):
-        if not os.path.isdir('/tmp/pim-trash'):
-            os.mkdir('/tmp/pim-trash')
-        # Check if there is already a file with that name at /tmp/pim-trash
-        delfile = '/tmp/pim-trash/'+os.path.basename(current)
-        if os.path.exists(delfile):
-            for i in range(0, 1000):
-                ndelfile = delfile+'.'+str(i)
-                if not os.path.exists(ndelfile):
-                    shutil.move(delfile, ndelfile)
-                    break
-        print('Moving {} into trash (/tmp/pim-trash/)'.format(current))
-        shutil.move(current, '/tmp/pim-trash')
-    if len(g.paths) == 0:
+    # https://specifications.freedesktop.org/trash-spec/trashspec-1.0.html
+    if not os.path.isdir(TRASH):
+        os.mkdir(TRASH)
+        os.mkdir(TRASH + '/files')
+        os.mkdir(TRASH + '/info')
+
+    path = g.paths.pop(g.index)
+    name = uuid.uuid4().hex
+    info = (
+        '[Trash Info]\n'
+        'Path={}\n'
+        'DeletionDate={}'
+        ).format(path, time.strftime('%Y-%m-%dT%H:%M:%S'))
+
+    f = open(TRASH + '/info/' + name + '.trashinfo', 'w')
+    f.write(info)
+    f.close()
+    shutil.move(path, TRASH + '/files/' + name)
+    print(':: trashed:', path)
+
+    if not len(g.paths):
+        print(':: quitting, as no files remain')
         quit()
     else:
+        if g.index == len(g.paths):
+            g.index -= 1
+
         move_index(delta)
 
 
