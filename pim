@@ -3,21 +3,21 @@
 # Thanks to alterecco, for inspiring the creation of this program.
 
 # TODO
+# shuffle wrap
 # zoom + lock
+
 # rotation lock
 # remember position
-# shuffle wrap
-
 # mark?
-# xdg trash, undelete, status text
-# preload images
 
 import argparse
 import configparser
+import os
 import random
 import shutil
 import threading
-import os
+import time
+import uuid
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -44,22 +44,37 @@ BUTTONS = {
     }
 
 HOME = os.getenv('HOME')
-XDG_CONFIG_HOME = os.getenv('XDG_CONFIG_HOME') or os.path.join(HOME, '.config')
+XDG_CONFIG_HOME = os.getenv('XDG_CONFIG_HOME') or HOME + '/.config'
+XDG_DATA_HOME   = os.getenv('XDG_DATA_HOME')   or HOME + '/.local/share'
+TRASH = XDG_DATA_HOME + '/Trash'
 
 def drag():
     g.drag = True
 
 def delete():
+    # https://specifications.freedesktop.org/trash-spec/trashspec-1.0.html
+    if not os.path.isdir(TRASH):
+        os.mkdir(TRASH)
+        os.mkdir(TRASH + '/files')
+        os.mkdir(TRASH + '/info')
+
     path = g.paths.pop(g.index)
+    name = uuid.uuid4().hex
+    info = (
+        '[Trash Info]\n'
+        'Path={}\n'
+        'DeletionDate={}'
+        ).format(path, time.strftime('%Y-%m-%dT%H:%M:%S'))
 
-    if not os.path.isdir('/tmp/pim'):
-        os.mkdir('/tmp/pim')
-
-    shutil.move(path, '/tmp/pim/' + os.path.basename(path))
-    print('trashed: ' + path)
+    f = open(TRASH + '/info/' + name, 'w')
+    f.write(info)
+    f.close()
+    shutil.move(path, TRASH + '/files/' + name)
+    print('trashed:', path)
 
     if g.index == len(g.paths):
         g.index -= 1
+
     move_index(0)
 
 def change_delay(delta):
