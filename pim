@@ -6,6 +6,7 @@
 # zoom + lock
 # rotation lock
 # remember position
+# shuffle wrap
 
 # mark?
 # xdg trash, undelete, status text
@@ -15,6 +16,7 @@ import argparse
 import configparser
 import random
 import shutil
+import threading
 import os
 
 import gi
@@ -205,13 +207,13 @@ def cursor_hide():
 def move_index(delta):
     g.index = (g.index + delta) % len(g.paths)
 
-    if not g.index and delta > 1:
-        toggle_status()
-        if g.shuffle:
-            random.shuffle(g.paths)
+    if delta == 1:
+        g.thread.join()
+        g.pixbuf = g.nextbuf
+    else:
+        path = g.paths[g.index]
+        g.pixbuf = GdkPixbuf.PixbufAnimation.new_from_file(path)
 
-    path = g.paths[g.index]
-    g.pixbuf = GdkPixbuf.PixbufAnimation.new_from_file(path)
     if g.pixbuf.is_static_image():
         g.animated = False
         g.pixbuf = g.pixbuf.get_static_image()
@@ -220,8 +222,14 @@ def move_index(delta):
 
     update_info()
     render()
+    g.thread = threading.Thread(target=get_next)
+    g.thread.start()
+    return True
 
-    return True # for the slideshow
+def get_next():
+    index = (g.index + 1) % len(g.paths)
+    path = g.paths[index]
+    g.nextbuf = GdkPixbuf.PixbufAnimation.new_from_file(path)
 
 def parse_args():
     parser = argparse.ArgumentParser()
