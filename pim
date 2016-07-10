@@ -15,6 +15,7 @@ import configparser
 import os
 import random
 import shutil
+import sys
 import threading
 import time
 import uuid
@@ -71,6 +72,10 @@ def delete():
     f.close()
     shutil.move(path, TRASH + '/files/' + name)
     print('trashed:', path)
+
+    if not len(g.paths):
+        print('no files remain')
+        sys.exit()
 
     if g.index == len(g.paths):
         g.index -= 1
