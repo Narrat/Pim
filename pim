@@ -6,7 +6,6 @@
 # zoom + lock
 # rotation lock
 # remember position
-# be nice about config file
 
 # mark?
 # xdg trash, undelete, status text
@@ -228,6 +227,13 @@ def parse_args():
     parser = argparse.ArgumentParser()
     #parser.set_defaults(**vars(g))
 
+    # TODO configurable config path
+    config_path = XDG_CONFIG_HOME + '/pim'
+    if os.path.isfile(config_path):
+        parse_config(config_path)
+    else:
+        parser.error('place config in: ' + config_path)
+
     parser.add_argument('--fs', action='store_true', default=g.fullscreen,
          dest='fullscreen')
     parser.add_argument('--shuffle', action='store_true', default=g.shuffle)
@@ -240,10 +246,10 @@ def parse_args():
     if not len(g.paths):
         parser.error('no loadable images found')
 
-def parse_config():
+def parse_config(config_path):
     config = configparser.ConfigParser()
     config.optionxform = lambda option: option # don't lowercase keys
-    config.read(XDG_CONFIG_HOME + '/pim')
+    config.read(config_path)
 
     g.Buttons = config._sections['Buttons']
     g.Keys = config._sections['Keys']
@@ -254,7 +260,6 @@ def parse_config():
     g.slide_delay = opt.getint('slideshow delay', g.slide_delay)
 
 def main():
-    parse_config()
     parse_args()
 
     win = g.win = Gtk.Window()
