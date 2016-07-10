@@ -102,11 +102,16 @@ def get_paths():
     for format in GdkPixbuf.Pixbuf.get_formats():
         extensions.extend(format.get_extensions())
 
-    path = os.path.abspath(g.path)
-    isfile = os.path.isfile(path)
-    dirname = isfile and os.path.dirname(path) or path
+    if len(g.path) == 1:
+        path = os.path.abspath(g.path[0])
+        isfile = os.path.isfile(path)
+        dirname = isfile and os.path.dirname(path) or path
+        paths = [dirname + '/' + path for path in os.listdir(dirname)]
+    else:
+        isfile = False
+        paths = [os.path.abspath(path) for path in g.path]
 
-    paths = [path for path in os.listdir(dirname) if
+    paths = [path for path in paths if
         os.path.splitext(path)[1][1:] in extensions]
 
     if g.shuffle:
@@ -114,7 +119,7 @@ def get_paths():
     else:
         paths.sort()
 
-    g.paths = [dirname + '/' + path for path in paths]
+    g.paths = paths
     g.index = isfile and g.paths.index(path) or 0
 
 def update_info():
@@ -221,7 +226,7 @@ def parse_args():
          dest='fullscreen')
     parser.add_argument('--shuffle', action='store_true', default=g.shuffle)
     parser.add_argument('--status', action='store_true', default=g.status)
-    parser.add_argument('path')
+    parser.add_argument('path', nargs='+')
 
     parser.parse_args(namespace=g)
     get_paths()
