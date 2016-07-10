@@ -109,7 +109,7 @@ def get_paths():
         paths = [os.path.abspath(path) for path in g.path]
 
     paths = [path for path in paths if
-        os.path.splitext(path)[1][1:] in extensions]
+        os.path.splitext(path)[1][1:].lower() in extensions]
 
     if g.shuffle:
         random.shuffle(paths)
