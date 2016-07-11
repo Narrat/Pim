@@ -3,9 +3,7 @@
 # Thanks to alterecco, for inspiring the creation of this program.
 
 # TODO
-# zoom + lock
-
-# rotation lock
+# (zoom, rotation) lock
 # remember position
 # mark?
 
@@ -34,7 +32,8 @@ g = argparse.Namespace(
     slideshow = False,
     slide_delay = 5,
     status = True,
-    zoom = False
+    zoom = False,
+    zoom_delta = 0
     )
 
 BUTTONS = {
@@ -156,11 +155,15 @@ def render():
     pWidth = g.pixbuf.get_width()
     pHeight = g.pixbuf.get_height()
 
-    if g.zoom:
-        scale = g.sWidth / pWidth
+    if g.foo:
+        if g.zoom:
+            scale = g.sWidth / pWidth
+        else:
+            scale = g.sHeight / pHeight
     else:
-        scale = g.sHeight / pHeight
-    
+        scale = 1
+
+    scale *= 1.25 ** g.zoom_delta
     g.scale = scale
     scaled = g.pixbuf.scale_simple(pWidth * scale, pHeight * scale,
         GdkPixbuf.InterpType.BILINEAR)
@@ -225,6 +228,7 @@ def cursor_hide():
 
 def move_index(delta):
     g.index = (g.index + delta) % len(g.paths)
+    g.zoom_delta = 0
 
     if delta == 1:
         if g.thread:
@@ -290,6 +294,7 @@ def parse_config(config_path):
     g.Keys = config._sections['Keys']
 
     opt = config['Options']
+    g.foo = opt.getboolean('foo', False)
     g.format = opt.get('format', g.format)
     g.fullscreen = opt.getboolean('fullscreen', g.fullscreen)
     g.slide_delay = opt.getint('slideshow delay', g.slide_delay)
@@ -352,6 +357,14 @@ def scroll(scroll, horizontal):
     #g.scroll.do_scroll_child(scroll, horizontal)
     g.scroll.emit('scroll-child', scroll,  horizontal)
 
+def zoom_delta(delta):
+    g.zoom_delta += delta
+    render()
+
+def fooToggle():
+    g.foo = not g.foo
+    render()
+
 Actions = {
     'pageLeft':  (scroll, Gtk.ScrollType.PAGE_BACKWARD, True),
     'pageDown':  (scroll, Gtk.ScrollType.PAGE_FORWARD,  False),
@@ -376,7 +389,10 @@ Actions = {
     'slower': (change_delay, 1),
     'faster': (change_delay, -1),
     'status': (toggle_status,),
-    'zoom': (zoom,)
+    'zoom': (zoom,),
+    'zoomIn': (zoom_delta, 1),
+    'zoomOut': (zoom_delta, -1),
+    'fooToggle': (fooToggle,),
 }
 
 if __name__ == '__main__':

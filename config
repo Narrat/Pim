@@ -41,8 +41,12 @@ f: fullscreen
 q: quit
 #x: delete
 z: zoom
+c: zoomIn
+v: zoomOut
+C-z: fooToggle
 
 [Options]
 format: {i}/{l} {path} {slide}
 #fullscreen: true
 slideshow delay: 5
+foo: true
