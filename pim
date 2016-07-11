@@ -3,7 +3,6 @@
 # Thanks to alterecco, for inspiring the creation of this program.
 
 # TODO
-# shuffle wrap
 # zoom + lock
 
 # rotation lock
@@ -228,9 +227,12 @@ def move_index(delta):
     g.index = (g.index + delta) % len(g.paths)
 
     if delta == 1:
-        g.thread.join()
+        if g.thread:
+            g.thread.join()
         g.pixbuf = g.nextbuf
     else:
+        if delta is -1:
+            g.nextbuf = g.pixbuf
         path = g.paths[g.index]
         g.pixbuf = GdkPixbuf.PixbufAnimation.new_from_file(path)
 
@@ -242,8 +244,13 @@ def move_index(delta):
 
     update_info()
     render()
-    g.thread = threading.Thread(target=get_next)
-    g.thread.start()
+
+    if delta is -1:
+        g.thread = None
+    else:
+        g.thread = threading.Thread(target=get_next)
+        g.thread.start()
+
     return True
 
 def get_next():
