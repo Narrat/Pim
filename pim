@@ -65,6 +65,7 @@ def delete():
         'DeletionDate={}'
         ).format(path, time.strftime('%Y-%m-%dT%H:%M:%S'))
 
+    # XXX with ?
     f = open(TRASH + '/info/' + name + '.trashinfo', 'w')
     f.write(info)
     f.close()
@@ -184,12 +185,7 @@ def handle_button_press(win, event):
     return True # XXX single clicks fire twice without this
 
 def handle_button_release(win, event):
-    button = str(event.button)
-    name = g.Buttons.get(button)
-
-    if name == 'drag':
-        g.drag = False
-
+    g.drag = False
     return True
 
 def handle_key(win, event):
@@ -219,8 +215,11 @@ def handle_motion(win, event):
     g.cursor_id = GLib.timeout_add_seconds(g.hide_delay, cursor_hide)
 
     if (g.drag):
-        scale = g.vadj.props.upper / g.vadj.props.page_size
-        g.vadj.set_value(event.y * scale)
+        # XXX with win.freeze_notify() ?
+        xscale = g.hadj.props.upper / g.hadj.props.page_size
+        yscale = g.vadj.props.upper / g.vadj.props.page_size
+        g.hadj.set_value(event.x * xscale)
+        g.vadj.set_value(event.y * yscale)
 
 def cursor_hide():
     g.win.get_window().set_cursor(g.cursor)
@@ -316,6 +315,7 @@ def main():
     g.image = Gtk.Image()
     g.scroll = Gtk.ScrolledWindow()
     g.scroll.add(g.image)
+    g.hadj = g.scroll.get_hadjustment()
     g.vadj = g.scroll.get_vadjustment()
 
     label = g.label = Gtk.Label()
