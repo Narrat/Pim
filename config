@@ -43,10 +43,10 @@ q: quit
 z: zoom
 c: zoomIn
 v: zoomOut
-C-z: fooToggle
+C-z: toggle_auto_zoom
 
 [Options]
 format: {i}/{l} {path} {slide}
 #fullscreen: true
 slideshow delay: 5
-foo: true
+auto zoom: true

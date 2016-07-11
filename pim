@@ -156,7 +156,7 @@ def render():
     pWidth = g.pixbuf.get_width()
     pHeight = g.pixbuf.get_height()
 
-    if g.foo:
+    if g.auto_zoom:
         if g.zoom:
             scale = g.sWidth / pWidth
         else:
@@ -293,7 +293,7 @@ def parse_config(config_path):
     g.Keys = config._sections['Keys']
 
     opt = config['Options']
-    g.foo = opt.getboolean('foo', False)
+    g.auto_zoom = opt.getboolean('auto zoom', False)
     g.format = opt.get('format', g.format)
     g.fullscreen = opt.getboolean('fullscreen', g.fullscreen)
     g.slide_delay = opt.getint('slideshow delay', g.slide_delay)
@@ -361,8 +361,8 @@ def zoom_delta(delta):
     g.zoom_delta += delta
     render()
 
-def fooToggle():
-    g.foo = not g.foo
+def toggle_auto_zoom():
+    g.auto_zoom = not g.auto_zoom
     render()
 
 Actions = {
@@ -392,7 +392,7 @@ Actions = {
     'zoom': (zoom,),
     'zoomIn': (zoom_delta, 1),
     'zoomOut': (zoom_delta, -1),
-    'fooToggle': (fooToggle,),
+    'toggle_auto_zoom': (toggle_auto_zoom,),
 }
 
 if __name__ == '__main__':
