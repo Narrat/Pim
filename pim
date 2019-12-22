@@ -203,7 +203,7 @@ class Pim:
         self.index = (self.index + delta) % len(self.paths)
 
         # reshuffle on wrap-around
-        if self.shuffle and self.index is 0 and delta > 0:
+        if self.shuffle and self.index == 0 and delta > 0:
             shuffle(self.paths)
 
         path = self.paths[self.index]
@@ -295,7 +295,7 @@ class Pim:
         args = args.path
         # If only one path is passed do special stuff
         single = None
-        if len(args) is 1:
+        if len(args) == 1:
             arg = args[0]
             if os.path.isfile(arg):
                 # use parent directory
