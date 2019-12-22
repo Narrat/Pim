@@ -95,7 +95,7 @@ class Pim:
             )
 
     def cursor_hide(self):
-        self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR))
+        self.win.get_window().set_cursor(Gdk.Cursor.new_for_display(self.dis, Gdk.CursorType.BLANK_CURSOR))
 
     def delete(self, delta=0):
         current = self.paths[self.index]
@@ -462,6 +462,8 @@ class Pim:
 
     def main(self):
         self.parse_args()
+
+        self.dis = Gdk.Display().get_default()
 
         screen = Gdk.Screen()
         self.Sizes = {}
