@@ -126,11 +126,11 @@ class Pim:
         pboScale = pboWidth / pboHeight
 
         if self.fullscreen:
-            winSize = (self.Sizes['sWidth'], self.Sizes['sHeight'])
-            wScale = self.Sizes['sWidth'] / self.Sizes['sHeight']
+            winSize = (self.mon_size.width, self.mon_size.height)
+            wScale = self.mon_size.width / self.mon_size.height
         else:
-            winSize = self.Sizes['wSize']
-            wScale = self.Sizes['wSize'][0] / self.Sizes['wSize'][1]
+            winSize = self.win_size
+            wScale = self.win_size[0] / self.win_size[1]
 
         stickout = zWidth | zHeight
         if pboWidth < winSize[0] and pboHeight < winSize[1] and not stickout:
@@ -222,7 +222,7 @@ class Pim:
                     self.rotation = 0
                 if not self.zoom_lock:
                     if not self.fullscreen:
-                        self.Sizes['wSize'] = self.win.get_size()
+                        self.win_size = self.win.get_size()
                     self.zoom_percent = self.get_zoom_percent()
             else:
                 self.zoom_percent = 1
@@ -363,8 +363,8 @@ class Pim:
 
     def set_default_window_size(self):
         self.parse_geometry()
-        winWidth = self.geometry[0] if self.Sizes['sWidth'] >= 800 else self.Sizes['sWidth']
-        winHeight = self.geometry[1] if self.Sizes['sHeight'] >= 600 else self.Sizes['sHeight']
+        winWidth = self.geometry[0] if self.mon_size.width >= 800 else self.mon_size.width
+        winHeight = self.geometry[1] if self.mon_size.height >= 600 else self.mon_size.height
 
         self.win.resize(winWidth, winHeight)
         if self.fullscreen:
@@ -387,7 +387,7 @@ class Pim:
             # Save previous window size. Possible since get_size gets old value
             # And this is also the cause for some problems
             # (zoomfactor for fullscreen on non fullscreen window)
-            self.Sizes['wSize'] = self.win.get_size()
+            self.win_size = self.win.get_size()
         else:
             self.win.unfullscreen()
         if not self.zoom_lock:
@@ -454,7 +454,7 @@ class Pim:
     def zoom_to(self, percent, zWidth=False, zHeight=False):
         try:
             if not self.fullscreen:
-                self.Sizes['wSize'] = self.win.get_size()
+                self.win_size = self.win.get_size()
             self.zoom_percent = percent if percent else self.get_zoom_percent(zWidth, zHeight)
             self.update_image()
         except:
@@ -464,11 +464,6 @@ class Pim:
         self.parse_args()
 
         self.dis = Gdk.Display().get_default()
-
-        screen = Gdk.Screen()
-        self.Sizes = {}
-        self.Sizes['sWidth'] = screen.width()
-        self.Sizes['sHeight'] = screen.height()
 
         self.cur_timer_id = GLib.timeout_add_seconds(self.cur_hide_delay,
                                                      self.cursor_hide)
@@ -493,8 +488,12 @@ class Pim:
         viewport.set_shadow_type(Gtk.ShadowType.NONE)
         self.scrolled_win.add(viewport)
 
+        # Not nice in regard of hardcoded monitor
+        monitor = Gdk.Display.get_monitor(self.dis, 0)
+        self.mon_size = Gdk.Monitor.get_geometry(monitor)
+
         self.set_default_window_size()
-        self.Sizes['wSize'] = self.win.get_size()
+        self.win_size = self.win.get_size()
 
         self.image = Gtk.Image()
         viewport.add(self.image)
