@@ -209,14 +209,9 @@ def parse_args():
                         help='set the slideshow delay',
                         default=g.slideshow_delay)
     parser.add_argument('path', nargs='+')
-    args = parser.parse_args()
-    g.sbar = args.sbar
-    g.fullscreen = args.fullscreen
-    g.geometry = args.geometry
-    g.shuffle = args.shuffle
-    g.slideshow_delay = args.slideshow_delay
+    parser.parse_args(namespace=g)
 
-    if not populate(args):
+    if not populate(g.path):
         parser.error('no loadable images detected')
 
 
@@ -247,7 +242,7 @@ def populate(args):
     for pixbuf_format in GdkPixbuf.Pixbuf.get_formats():
         types.extend(pixbuf_format.get_mime_types())
 
-    args = args.path
+    args = g.path
     # If only one path is passed do special stuff
     single = None
     if len(args) == 1:
