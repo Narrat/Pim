@@ -331,7 +331,7 @@ def set_default_window_size(mon_size):
         g.win.fullscreen()
 
 
-def set_slideshow_delay(delta):
+def change_delay(delta):
     if g.slideshow_delay == 1 and delta == -1:
         return
     else:
@@ -530,8 +530,8 @@ binds = (
     ('R', rotate, 90),
     ('r', rotate, -90),
     ('s', toggle_slideshow),
-    ('T', set_slideshow_delay, -1),
-    ('t', set_slideshow_delay, 1),
+    ('T', change_delay, -1),
+    ('t', change_delay, 1),
     ('X', delete, -1),
     ('x', delete, 0),
     ('z', toggle_zoom_lock),
