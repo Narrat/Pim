@@ -61,9 +61,9 @@ def delete(delta=0):
         print('Moving {} into trash (/tmp/pim-trash/)'.format(current))
         shutil.move(current, '/tmp/pim-trash')
     if len(g.paths) == 0:
-        self.quit()
+        quit()
     else:
-        self.move_index(delta)
+        move_index(delta)
 
 
 def get_zoom_percent(zWidth=False, zHeight=False):
