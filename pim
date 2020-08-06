@@ -148,7 +148,7 @@ def handle_key_press(widget, event):
             args = bind[2:]
             funk(*args)
             return
-    print('::Warning: Unrecognized key:', event.string)
+    print(':: Warning: Unrecognized key:', event.string)
 
 
 def mark():
@@ -173,7 +173,7 @@ def move_index(delta, slide=False):
     path = g.paths[g.index]
     try:
         if not os.path.exists(path):
-            print("::Error: Couldn't open", path)
+            print(":: Error: Couldn't open", path)
             delete()
             return
         else:
@@ -237,11 +237,11 @@ def parse_geometry():
             if len(g.geometry[ele]) > 0:
                 g.geometry[ele] = int(g.geometry[ele])
             else:
-                print('::Warning: Missing geometry parameter.'
-                      ' Replacing with default')
+                print(':: Warning: Missing geometry parameter.'
+                      '   Replacing with default')
                 g.geometry[ele] = 200*(4-ele)
     else:
-        print('::Warning: The geometry should be like that: 800x600'
+        print(':: Warning: The geometry should be like that: 800x600'
               '\n::Falling back to default')
         g.geometry = '800x600'
         parse_geometry()
@@ -268,7 +268,7 @@ def populate(args):
         elif os.path.isdir(arg) and os.path.isfile('pim-position'):
             f = open('pim-position')
             single = f.read()
-            print('Found position file. Starting with: '+single)
+            print(':: Found position file. Starting with: '+single)
 
     # add everything
     for arg in args:
@@ -280,7 +280,7 @@ def populate(args):
             paths.sort()
             g.paths.extend(paths)
         else:
-            print('{} is not a valid path!'.format(arg))
+            print(':: Error: {} is not a valid path!'.format(arg))
 
     # remove unsupported files
     g.paths = [path for path in g.paths if mimetypes.guess_type(path)[
@@ -322,7 +322,7 @@ def rotate(delta):
             g.zoom_percent = get_zoom_percent()
         update_image()
     except:
-        print('::Warning: Animation object cannot be rotated')
+        print(':: Warning: Animation object cannot be rotated')
 
 
 def scroll(scrolltype, horizontal):
@@ -428,7 +428,7 @@ def zoom_delta(delta):
             g.zoom_percent = 1/100
         update_image()
     except:
-        print('::Warning: Animation object cannot be zoomed')
+        print(':: Warning: Animation object cannot be zoomed')
 
 
 def zoom_to(percent, zWidth=False, zHeight=False):
@@ -438,7 +438,7 @@ def zoom_to(percent, zWidth=False, zHeight=False):
         g.zoom_percent = percent if percent else get_zoom_percent(zWidth, zHeight)
         update_image()
     except:
-        print('::Warning: Animation object cannot be zoomed')
+        print(':: Warning: Animation object cannot be zoomed')
 
 
 def main():
