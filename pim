@@ -367,10 +367,10 @@ def scroll(scrolltype, horizontal):
     g.scrolled_win.emit('scroll-child', scrolltype, horizontal)
 
 
-def set_default_window_size(mon_size):
+def set_default_window_size():
     parse_geometry()
-    winWidth = g.geometry[0] if mon_size.width >= 800 else mon_size.width
-    winHeight = g.geometry[1] if mon_size.height >= 600 else mon_size.height
+    winWidth = g.geometry[0] if g.mon_size.width >= 800 else g.mon_size.width
+    winHeight = g.geometry[1] if g.mon_size.height >= 600 else g.mon_size.height
 
     g.win.resize(winWidth, winHeight)
     if g.fullscreen:
@@ -508,9 +508,9 @@ def main():
 
     # Not nice in regard of hardcoded monitor
     monitor = Gdk.Display.get_monitor(dis, 0)
-    mon_size = Gdk.Monitor.get_geometry(monitor)
+    g.mon_size = Gdk.Monitor.get_geometry(monitor)
 
-    set_default_window_size(mon_size)
+    set_default_window_size()
     g.win_size = win.get_size()
 
     g.image = Gtk.Image()
