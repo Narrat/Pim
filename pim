@@ -35,7 +35,58 @@ g = argparse.Namespace(
     zoom_lock=False,
 
     paths=[],
-    marked=[]
+    marked=[],
+
+    # Definition of keybindings
+    keybinds = {
+        'S-space': 'prev',
+        'space': 'next',
+        'p': 'prev',
+        'n': 'next',
+
+        'H': 'pageLeft',
+        'J': 'pageDown',
+        'K': 'pageUp',
+        'L': 'pageRight',
+
+        'h': 'left',
+        'j': 'down',
+        'k': 'up',
+        'l': 'right',
+
+        'Left': 'left',
+        'Down': 'down',
+        'Up': 'up',
+        'Right': 'right',
+
+        'G': 'scrollEnd',
+        'g': 'scrollStart',
+
+        'm': 'mark_picture',
+
+        'C-r': 'rotation_lock',
+        'R': 'rotateL',
+        'r': 'rotateR',
+        't': 'slower',
+        'T': 'faster',
+
+        'b': 'status',
+        's': 'slideshow',
+        'f': 'fullscreen',
+        'q': 'quit',
+        'Q': 'saveq',
+        'x': 'delete',
+        'X': 'deleteb',
+        'w': 'zoom_fit',
+        'plus': 'zoom_in',
+        'minus': 'zoom_out',
+        '1': 'zoom_100',
+        '2': 'zoom_200',
+        '3': 'zoom_300',
+        'e': 'zoom_w',
+        'E': 'zoom_h',
+        'z': 'zoom_lock'
+    }
 )
 
 HOME = os.getenv('HOME')
@@ -120,35 +171,22 @@ def handle_cursor_move(*unused):
     g.win.get_window().set_cursor(None)
 
 
-def handle_key_press(widget, event):
-    keyval = event.keyval
-    keyname = Gdk.keyval_name(keyval)
-    if keyval == Gdk.KEY_Shift_L or keyval == Gdk.KEY_Shift_R:
-        return
-    elif keyval == Gdk.KEY_Alt_L or keyval == Gdk.KEY_Alt_R:
-        return
-    elif keyval == Gdk.KEY_Control_L or keyval == Gdk.KEY_Control_R:
-        return
-    # Check for Modifier with keys that don't support them visibly
-    specialkey = ('space', 'Left', 'Right', 'Down', 'Up',
-                  'greater', 'less', 'plus', 'minus')
-    if keyname in specialkey:
-        keyname = '{}'.format(event.get_state() &
-                              Gdk.ModifierType.SHIFT_MASK and
-                              keyname.upper() or keyname.lower())
-    # Check for Control (^) or Mod1 (Alt)
+def handle_key(win, event):
+    key = Gdk.keyval_name(event.keyval)
+
+    if key == 'space' and event.state & Gdk.ModifierType.SHIFT_MASK:
+        key = 'S-space'
+    # Support for Control and Alt modifier
     if event.get_state() & Gdk.ModifierType.CONTROL_MASK:
-        keyname = '^{}'.format(keyname)
+        key = 'C-{}'.format(key)
     if event.get_state() & Gdk.ModifierType.MOD1_MASK:
-        keyname = 'Alt+{}'.format(keyname)
-    # Loop through binds until found (Calls for improvements)
-    for bind in binds:
-        if keyname == bind[0]:
-            funk = bind[1]
-            args = bind[2:]
-            funk(*args)
-            return
-    print(':: Warning: Unrecognized key:', event.string)
+        key = 'Alt-{}'.format(key)
+
+    name = g.keybinds.get(key)
+
+    if name:
+        action = Actions[name]
+        action[0](*action[1:])
 
 
 def mark():
@@ -453,7 +491,7 @@ def main():
                    Gdk.EventMask.POINTER_MOTION_MASK)
     win.connect('destroy', Gtk.main_quit)
     win.connect('button_press_event', handle_button_press)
-    win.connect('key_press_event', handle_key_press)
+    win.connect('key_press_event', handle_key)
     win.connect('motion-notify-event', handle_cursor_move)
     win.set_icon_name('image-x-generic')
 
@@ -489,60 +527,44 @@ def main():
     Gtk.main()
 
 
-# Definition of keybindings
-binds = (
-    # (modifier+key, function, args)
-    # supported modifiers: Shift (through uppercase)
-    # Ctrl (through ^), Alt (through Alt+)
-
+Actions = {
     # if True, scroll in the horizontal direction.
-    ('Left',  scroll, Gtk.ScrollType.STEP_BACKWARD, True),
-    ('Down',  scroll, Gtk.ScrollType.STEP_FORWARD, False),
-    ('Up',    scroll, Gtk.ScrollType.STEP_BACKWARD, False),
-    ('Right', scroll, Gtk.ScrollType.STEP_FORWARD, True),
+    'scrollStart':  (scroll, Gtk.ScrollType.START, False),
+    'scrollEnd':  (scroll, Gtk.ScrollType.END,  False),
+    'pageLeft':  (scroll, Gtk.ScrollType.PAGE_BACKWARD, True),
+    'pageDown':  (scroll, Gtk.ScrollType.PAGE_FORWARD,  False),
+    'pageUp':    (scroll, Gtk.ScrollType.PAGE_BACKWARD, False),
+    'pageRight': (scroll, Gtk.ScrollType.PAGE_FORWARD,  True),
+    'left':  (scroll, Gtk.ScrollType.STEP_BACKWARD, True),
+    'down':  (scroll, Gtk.ScrollType.STEP_FORWARD,  False),
+    'up':    (scroll, Gtk.ScrollType.STEP_BACKWARD, False),
+    'right': (scroll, Gtk.ScrollType.STEP_FORWARD,  True),
 
-    ('H', scroll, Gtk.ScrollType.PAGE_BACKWARD, True),
-    ('J', scroll, Gtk.ScrollType.PAGE_FORWARD, False),
-    ('K', scroll, Gtk.ScrollType.PAGE_BACKWARD, False),
-    ('L', scroll, Gtk.ScrollType.PAGE_FORWARD, True),
-
-    ('h', scroll, Gtk.ScrollType.STEP_BACKWARD, True),
-    ('j', scroll, Gtk.ScrollType.STEP_FORWARD, False),
-    ('k', scroll, Gtk.ScrollType.STEP_BACKWARD, False),
-    ('l', scroll, Gtk.ScrollType.STEP_FORWARD, True),
-
-    ('G', scroll, Gtk.ScrollType.END, False),
-    ('g', scroll, Gtk.ScrollType.START, False),
-
-    ('SPACE', move_index, -1),
-    ('space', move_index, 1),
-    ('minus', zoom_delta, -.25),
-    ('plus', zoom_delta, +.25),
-    ('^r', toggle_rotation_lock),
-
-    ('1', zoom_to, 1),
-    ('2', zoom_to, 2),
-    ('3', zoom_to, 3),
-    ('E', zoom_to, 0, False, True),
-    ('e', zoom_to, 0, True, False),
-    ('w', zoom_to, 0),
-
-    ('b', toggle_statusbar),
-    ('f', toggle_fullscreen),
-    ('m', mark),
-    ('n', move_index, 1),
-    ('p', move_index, -1),
-    ('Q', quit, True),
-    ('q', quit),
-    ('R', rotate, 90),
-    ('r', rotate, -90),
-    ('s', toggle_slideshow),
-    ('T', change_delay, -1),
-    ('t', change_delay, 1),
-    ('X', delete, -1),
-    ('x', delete, 0),
-    ('z', toggle_zoom_lock),
-)
+    'delete': (delete, 0),
+    'deleteb': (delete, -1),
+    'fullscreen': (toggle_fullscreen,),
+    'next': (move_index, 1),
+    'prev': (move_index, -1),
+    'quit': (quit,),
+    'saveq': (quit, True),
+    'mark_picture': (mark,),
+    'rotation_lock': (toggle_rotation_lock,),
+    'rotateR': (rotate, -90),
+    'rotateL': (rotate, 90),
+    'slideshow': (toggle_slideshow,),
+    'slower': (change_delay, 1),
+    'faster': (change_delay, -1),
+    'status': (toggle_statusbar,),
+    'zoom_fit': (zoom_to, 0),
+    'zoom_in': (zoom_delta, +.25),
+    'zoom_out': (zoom_delta, -.25),
+    'zoom_100': (zoom_to, 1),
+    'zoom_200': (zoom_to, 2),
+    'zoom_300': (zoom_to, 3),
+    'zoom_h': (zoom_to, 0, False, True),
+    'zoom_w': (zoom_to, 0, True, False),
+    'zoom_lock': (toggle_zoom_lock,)
+}
 
 # Definition of mousebinds
 mouse_binds = (
