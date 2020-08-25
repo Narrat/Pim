@@ -21,7 +21,7 @@ import uuid
 
 # dict like, easy to use class, to avoid the hassle with global vars
 g = argparse.Namespace(
-    cur_hide_delay=2,
+    drag = False,
     fullscreen=False,
     geometry='800x600',
     hide_delay=1,
@@ -36,6 +36,13 @@ g = argparse.Namespace(
 
     paths=[],
     marked=[],
+
+    # Definition of buttons
+    buttons = {
+        '1': 'drag',
+        '8': 'prev',
+        '9': 'next'
+    },
 
     # Definition of keybindings
     keybinds = {
@@ -89,14 +96,20 @@ g = argparse.Namespace(
     }
 )
 
+BUTTONS = {
+    Gdk.EventType.BUTTON_PRESS: 1,
+    Gdk.EventType._2BUTTON_PRESS: 2,
+    Gdk.EventType._3BUTTON_PRESS: 3
+    }
+
 HOME = os.getenv('HOME')
 XDG_DATA_HOME   = os.getenv('XDG_DATA_HOME')   or HOME + '/.local/share'
 TRASH = XDG_DATA_HOME + '/Trash'
 
 
 def cursor_hide():
-    g.win.get_window().set_cursor(
-        Gdk.Cursor.new_for_display(g.dis, Gdk.CursorType.BLANK_CURSOR))
+    g.win.get_window().set_cursor(g.cursor)
+    g.cursor_id = None
 
 
 def delete(delta=0):
@@ -130,6 +143,10 @@ def delete(delta=0):
         move_index(delta)
 
 
+def drag():
+    g.drag = True
+
+
 def get_zoom_percent(zWidth=False, zHeight=False):
     pboWidth = g.pixbufOriginal.get_width()
     pboHeight = g.pixbufOriginal.get_height()
@@ -152,23 +169,35 @@ def get_zoom_percent(zWidth=False, zHeight=False):
 
 
 def handle_button_press(widget, event):
-    clicks = {
-        Gdk.EventType.BUTTON_PRESS: 1,
-        Gdk.EventType._2BUTTON_PRESS: 2,
-        Gdk.EventType._3BUTTON_PRESS: 3
-    }[event.type]
+    clicks = BUTTONS[event.type]
+    button = str(event.button)
+    name = g.buttons.get(button)
 
-    for bind in mouse_binds:
-        if bind[0] == clicks and bind[1] == event.button:
-            bind[2](*bind[3:])
-            break
+    if clicks == 1 and name:
+        action = Actions[name]
+        action[0](*action[1:])
+    elif clicks == 2 and button == '1':
+        toggle_fullscreen()
 
     return True  # XXX without this, single clicks fire twice
 
 
-def handle_cursor_move(*unused):
-    g.cur_timer_id = GLib.timeout_add_seconds(g.cur_hide_delay, cursor_hide)
-    g.win.get_window().set_cursor(None)
+def handle_button_release(win, event):
+    g.drag = False
+    return True
+
+
+def handle_motion(win, event):
+    win.get_window().set_cursor(None)
+    if g.cursor_id:
+        GLib.source_remove(g.cursor_id)
+    g.cursor_id = GLib.timeout_add_seconds(g.hide_delay, cursor_hide)
+
+    if (g.drag):
+        xscale = g.hadj.props.upper / g.hadj.props.page_size
+        yscale = g.vadj.props.upper / g.vadj.props.page_size
+        g.hadj.set_value(event.x * xscale)
+        g.vadj.set_value(event.y * yscale)
 
 
 def handle_key(win, event):
@@ -484,15 +513,17 @@ def main():
 
     dis = g.dis = Gdk.Display().get_default()
 
-    cur_timer_id = GLib.timeout_add_seconds(g.cur_hide_delay, cursor_hide)
+    g.cursor = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), 'none')
+    g.cursor_id = GLib.timeout_add_seconds(g.hide_delay, cursor_hide)
 
     win = g.win = Gtk.Window()
     win.add_events(Gdk.EventMask.KEY_PRESS_MASK |
                    Gdk.EventMask.POINTER_MOTION_MASK)
     win.connect('destroy', Gtk.main_quit)
     win.connect('button_press_event', handle_button_press)
+    win.connect('button-release-event', handle_button_release)
     win.connect('key_press_event', handle_key)
-    win.connect('motion-notify-event', handle_cursor_move)
+    win.connect('motion-notify-event', handle_motion)
     win.set_icon_name('image-x-generic')
 
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -505,6 +536,8 @@ def main():
     viewport.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse('#999999'))
     viewport.set_shadow_type(Gtk.ShadowType.NONE)
     g.scrolled_win.add(viewport)
+    g.hadj = g.scrolled_win.get_hadjustment()
+    g.vadj = g.scrolled_win.get_vadjustment()
 
     # Not nice in regard of hardcoded monitor
     monitor = Gdk.Display.get_monitor(dis, 0)
@@ -542,6 +575,7 @@ Actions = {
 
     'delete': (delete, 0),
     'deleteb': (delete, -1),
+    'drag': (drag,),
     'fullscreen': (toggle_fullscreen,),
     'next': (move_index, 1),
     'prev': (move_index, -1),
@@ -566,13 +600,6 @@ Actions = {
     'zoom_lock': (toggle_zoom_lock,)
 }
 
-# Definition of mousebinds
-mouse_binds = (
-    # clicks, button, function, args
-    (1, 8, move_index, -1),
-    (1, 9, move_index, 1),
-    (2, 1, toggle_fullscreen),
-)
 
 if __name__ == '__main__':
 
