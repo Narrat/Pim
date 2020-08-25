@@ -203,13 +203,14 @@ def handle_motion(win, event):
 def handle_key(win, event):
     key = Gdk.keyval_name(event.keyval)
 
-    if key == 'space' and event.state & Gdk.ModifierType.SHIFT_MASK:
-        key = 'S-space'
-    # Support for Control and Alt modifier
-    if event.get_state() & Gdk.ModifierType.CONTROL_MASK:
-        key = 'C-{}'.format(key)
-    if event.get_state() & Gdk.ModifierType.MOD1_MASK:
-        key = 'Alt-{}'.format(key)
+    # XXX only support one modifier key, so we don't have to support
+    # modifiers in arbitrary order
+    if event.state & Gdk.ModifierType.MOD1_MASK:
+        key = 'A-' + key
+    elif event.state & Gdk.ModifierType.CONTROL_MASK:
+        key = 'C-' + key
+    elif event.state & Gdk.ModifierType.SHIFT_MASK and len(key) > 1:
+        key = 'S-' + key
 
     name = g.keybinds.get(key)
 
