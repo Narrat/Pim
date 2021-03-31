@@ -538,7 +538,6 @@ def main():
     vbox.pack_start(g.scrolled_win, True, True, 0)
 
     viewport = Gtk.Viewport()
-    viewport.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse('#999999'))
     viewport.set_shadow_type(Gtk.ShadowType.NONE)
     g.scrolled_win.add(viewport)
     g.hadj = g.scrolled_win.get_hadjustment()
