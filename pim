@@ -268,8 +268,8 @@ def move_index(delta, slide=False):
         scroll(Gtk.ScrollType.START, True)
 
     except GLib.Error as err:
-        print(err)
-        g.move_index(1)
+        print(":: couldn't read", path, 'because:', err)
+        move_index(1)
 
     return True  # for the slideshow
 
