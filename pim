@@ -120,18 +120,22 @@ def delete(delta=0):
         os.mkdir(TRASH + '/info')
 
     path = g.paths.pop(g.index)
-    name = uuid.uuid4().hex
-    info = (
-        '[Trash Info]\n'
-        'Path={}\n'
-        'DeletionDate={}'
-        ).format(path, time.strftime('%Y-%m-%dT%H:%M:%S'))
+    # Check if physical existing
+    if os.path.exists(path):
+        name = uuid.uuid4().hex
+        info = (
+            '[Trash Info]\n'
+            'Path={}\n'
+            'DeletionDate={}'
+            ).format(path, time.strftime('%Y-%m-%dT%H:%M:%S'))
 
-    f = open(TRASH + '/info/' + name + '.trashinfo', 'w')
-    f.write(info)
-    f.close()
-    shutil.move(path, TRASH + '/files/' + name)
-    print(':: trashed:', path)
+        f = open(TRASH + '/info/' + name + '.trashinfo', 'w')
+        f.write(info)
+        f.close()
+        shutil.move(path, TRASH + '/files/' + name)
+        print(':: trashed:', path)
+    else:
+        print(':: removed', path, 'from the selection')
 
     if not len(g.paths):
         print(':: quitting, as no files remain')
